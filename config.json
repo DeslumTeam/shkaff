@@ -1,0 +1,24 @@
+{
+	"SHKAFF_UI_HOST":"0.0.0.0",
+	"SHKAFF_UI_PORT":8080,
+	"RMQ_HOST": "0.0.0.0",
+	"RMQ_PORT": 5672,
+	"RMQ_USER": "shkaff",
+	"RMQ_PASS": "shkaff",
+	"RMQ_VHOST": "shkaff_workers",
+	"DATABASE_HOST": "0.0.0.0",
+	"DATABASE_PORT": 5432,
+	"DATABASE_USER": "test",
+	"DATABASE_PASS": "test",
+	"DATABASE_DB": "shkaff",
+	"STATBASE_HOST": "0.0.0.0",
+	"STATBASE_PORT": 9000,
+	"STATBASE_USER": "test",
+	"STATBASE_PASS": "test",
+	"REFRESH_DATABASE_SCAN": 10,
+	"MONGO_RESTORE_HOST": "0.0.0.0",
+	"MONGO_RESTORE_PORT": 27018,
+	"WORKERS_COUNT":{
+		"mongodb":20
+	}
+}

@@ -1,0 +1,84 @@
+version: "2"
+
+services:
+  PostgreSQL:
+    restart: always
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=test
+      - POSTGRES_DB=shkaff
+    volumes:
+      - ./maindb/shkaff.sql:/docker-entrypoint-initdb.d/shkaff.sql
+
+  MongoDB:
+    restart: always
+    image: mongo:latest
+    environment:
+      - MONGODB_USER=test
+      - MONGODB_DATABASE=test
+      - MONGODB_PASS=test
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb_test:/opt
+
+  MongoDB-Restore:
+    restart: always
+    image: mongo:latest
+    environment:
+      - MONGODB_USER=test
+      - MONGODB_DATABASE=test
+      - MONGODB_PASS=test
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongodb_test:/opt
+
+  RabbitMQ:
+    restart: always
+    image: "rabbitmq:latest"
+    environment:
+      - RABBITMQ_DEFAULT_USER=shkaff
+      - RABBITMQ_DEFAULT_PASS=shkaff
+      - RABBITMQ_DEFAULT_VHOST=shkaff_workers
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:    
+      - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+
+
+  ClickHouse-Server:
+    restart: always
+    image: yandex/clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9009:9009"
+
+  ClickHouse-Client:
+    image: yandex/clickhouse-client
+    links:
+      - ClickHouse-Server:ClickHouse-Server
+    entrypoint: /bin/bash
+    environment:
+      - HOUSE_HOST=ClickHouse-Server
+    volumes:
+      - ./clickhouse:/opt
+    command: "/opt/create_table.sh"
+
+  # shkaff:
+  #   build:
+  #     context: ../.
+  #     dockerfile: Dockerfile
+  #   ports:
+  #   - "5500:8080" 
+  #   links: 
+  #   - PostgreSQL:PostgreSQL
+  #   - ClickHouse-Server:ClickHouse-Server
+  #   - RabbitMQ:RabbitMQ
+  #   - MongoDB:MongoDB
+  #   - MongoDB-Restore:MongoDB-Restore

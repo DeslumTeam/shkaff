@@ -1,0 +1,209 @@
+{
+	"ImportPath": "shkaff",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/gin-contrib/sse",
+			"Rev": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin",
+			"Comment": "v1.2-143-g783c7ee",
+			"Rev": "783c7ee9c14eac0e65b501664b4f553291556b43"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/binding",
+			"Comment": "v1.2-143-g783c7ee",
+			"Rev": "783c7ee9c14eac0e65b501664b4f553291556b43"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/json",
+			"Comment": "v1.2-143-g783c7ee",
+			"Rev": "783c7ee9c14eac0e65b501664b4f553291556b43"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/render",
+			"Comment": "v1.2-143-g783c7ee",
+			"Rev": "783c7ee9c14eac0e65b501664b4f553291556b43"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "925541529c1fa6821df4e44ce2723319eb2be768"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "553a641470496b2327abcac10b36396bd98e45c9"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.1-131-g05cef07",
+			"Rev": "05cef0741ade10ca668982355b3f3f0bcf0ff0a8"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx/reflectx",
+			"Comment": "sqlx-v1.1-131-g05cef07",
+			"Rev": "05cef0741ade10ca668982355b3f3f0bcf0ff0a8"
+		},
+		{
+			"ImportPath": "github.com/json-iterator/go",
+			"Comment": "1.0.5-1-gbca911d",
+			"Rev": "bca911dae0735b8220ddb30236e11cff9d959f19"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/binary",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/column",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/data",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/protocol",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/types",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/kshvakov/clickhouse/lib/writebuffer",
+			"Comment": "v1.3.1-4-ga3d26dd",
+			"Rev": "a3d26dd0ef075c25d63f551e83dfae8e9b5c4eed"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-201-g19c8e9a",
+			"Rev": "19c8e9ad00952ce0c64489b60e8df88bb16dd514"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-201-g19c8e9a",
+			"Rev": "19c8e9ad00952ce0c64489b60e8df88bb16dd514"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Comment": "v0.0.3-7-g6ca4dbf",
+			"Rev": "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+		},
+		{
+			"ImportPath": "github.com/op/go-logging",
+			"Comment": "v1-7-g970db52",
+			"Rev": "970db520ece77730c7e4724c61121037378659d9"
+		},
+		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "54ded0531dfd699a7893861d39a7a949c5749bc9"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/cache",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/comparer",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/errors",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/filter",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/iterator",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/journal",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/memdb",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/opt",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/storage",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/table",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/util",
+			"Rev": "211f780988068502fe874c44dae530528ebd840f"
+		},
+		{
+			"ImportPath": "github.com/takama/daemon",
+			"Comment": "0.9.3",
+			"Rev": "f30a97dd1445619884e03e7ed088bc1b3c4f767e"
+		},
+		{
+			"ImportPath": "github.com/ugorji/go/codec",
+			"Comment": "v1.1-1-gd2b24cf",
+			"Rev": "d2b24cf3d3b4fe77f5ca411be71afb460ce4c92d"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "ff2a66f350cefa5c93a634eadb5d25bb60c85a9c"
+		},
+		{
+			"ImportPath": "gopkg.in/go-playground/validator.v8",
+			"Comment": "v8.18.2",
+			"Rev": "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/bson",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/json",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/sasl",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+		}
+	]
+}
