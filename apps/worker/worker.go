@@ -49,7 +49,7 @@ func InitWorker() (ws *workersStarter) {
 		}
 		ws.workers = append(ws.workers, worker)
 	}
-	return
+	return ws
 }
 
 func (ws *workersStarter) Run() {

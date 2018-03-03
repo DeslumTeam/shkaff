@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 	"shkaff/internal/consts"
 	"shkaff/internal/logger"
 	"sync"
@@ -52,11 +50,11 @@ func InitControlConfig() *ShkaffConfig {
 	cc = &ShkaffConfig{}
 	var file []byte
 	var err error
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if file, err = ioutil.ReadFile(dir + "/" + consts.CONFIG_FILE); err != nil {
+	// dir, err := filepath.Abs(os.Args[0])
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	if file, err = ioutil.ReadFile("/home/deslum/src/shkaff/config.json"); err != nil {
 		log.Fatalln(err)
 		return nil
 	}
@@ -139,6 +137,9 @@ func (cc *ShkaffConfig) validate() {
 
 	if cc.REFRESH_DATABASE_SCAN == 0 {
 		cc.REFRESH_DATABASE_SCAN = consts.DEFAULT_REFRESH_DATABASE_SCAN
+	}
+	if len(cc.WORKERS) == 0 {
+		log.Fatalln("Count Workers should be greater 0")
 	}
 	for database, workersCount := range cc.WORKERS {
 		if workersCount > 0 {

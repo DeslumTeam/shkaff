@@ -13,6 +13,7 @@ import (
 	"shkaff/internal/structs"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	logging "github.com/op/go-logging"
 )
 

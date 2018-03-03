@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"shkaff/internal/consts"
 	"time"
@@ -23,22 +22,20 @@ type Cache struct {
 func InitCacheDB() (cache *Cache, err error) {
 	err = os.MkdirAll(consts.CACHEPATH, 0755)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	cache = new(Cache)
 	cache.DB, err = leveldb.OpenFile(consts.CACHEPATH, nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-
 	return
-
 }
 
 func (cache *Cache) SetKV(userID, dbID, taskID int) (err error) {
 	key := []byte(fmt.Sprintf("%d|%d|%d", userID, dbID, taskID))
 	value := make([]byte, 8)
-	binary.LittleEndian.PutUint64(value, uint64(time.Now().Unix()))
+	binary.LittleEndian.PutUint64(value, uint64(time.Now().Unix()+TTL))
 	err = cache.DB.Put(key, value, nil)
 	if err != nil {
 		return err
@@ -53,7 +50,7 @@ func (cache *Cache) GetKV(userID, dbID, taskID int) (timestamp int64, err error)
 		return 0, err
 	}
 	timestamp = int64(binary.LittleEndian.Uint64(valB))
-	if timestamp < time.Now().Unix()+TTL {
+	if timestamp < time.Now().Unix() {
 		return 0, errors.New("Expire key")
 	}
 	return timestamp, nil
@@ -73,15 +70,15 @@ func (cache *Cache) ExistKV(userID, dbID, taskID int) (result bool, err error) {
 	res, err := cache.Get(key, nil)
 	if err == nil {
 		timestamp := int64(binary.LittleEndian.Uint64(res))
-		if timestamp < time.Now().Unix()+TTL {
+		if timestamp < time.Now().Unix() {
 			return false, nil
 		}
 	}
-	if err.Error() == "leveldb: not found" {
-		return false, nil
+	if err != nil {
+		return false, err
 	}
 	if res == nil {
-		return false, err
+		return false, nil
 	}
 	return true, nil
 }
