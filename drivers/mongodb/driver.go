@@ -15,9 +15,10 @@ import (
 
 var (
 	MONGO_SUCESS_DUMP = regexp.MustCompile(`\tdone\ dumping`)
-	RESTORE_ERRORS    = [2]*regexp.Regexp{
+	RESTORE_ERRORS    = []*regexp.Regexp{
 		regexp.MustCompile(`exit\ status\ 1`),
-		regexp.MustCompile(`skipping...`)}
+		regexp.MustCompile(`skipping...`),
+		regexp.MustCompile(`server\\ returned\\ error\\ on\\ SASL\\ authentication\\ step\\:\\ Authentication\\ failed`)}
 )
 
 type MongoParams struct {
@@ -28,7 +29,6 @@ type MongoParams struct {
 	password               string
 	ipv6                   bool
 	database               string
-	collection             string
 	gzip                   bool
 	parallelCollectionsNum int
 	dumpFolder             string
@@ -51,7 +51,6 @@ func (mp *MongoParams) setDBSettings(task *structs.Task) {
 	mp.database = task.Database
 	mp.parallelCollectionsNum = task.ThreadCount
 	mp.dumpFolder = task.DumpFolder
-
 }
 
 func (mp *MongoParams) isUseAuth() bool {
@@ -62,17 +61,27 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 	var cmdLine []string
 
 	cmdLine = append(cmdLine, consts.MONGO_DUMP_COMMAND)
-	cmdLine = append(cmdLine, fmt.Sprintf("%s %s", consts.MONGO_HOST_KEY, mp.host))
-	cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.port))
-	cmdLine = append(cmdLine, fmt.Sprintf("--out=%s", mp.dumpFolder))
+	if mp.host != "" {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s %s", consts.MONGO_HOST_KEY, mp.host))
+	}
+	if mp.port > 0 {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.port))
+	}
+	if mp.dumpFolder != "" {
+		cmdLine = append(cmdLine, fmt.Sprintf("--out=%s", mp.dumpFolder))
+	}
 
 	if mp.isUseAuth() {
 		auth := fmt.Sprintf("%s %s %s %s", consts.MONGO_LOGIN_KEY, mp.login, consts.MONGO_PASS_KEY, mp.password)
 		cmdLine = append(cmdLine, auth)
 	}
 
+	if mp.parallelCollectionsNum > 4 {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
+	}
+
 	if mp.ipv6 {
-		cmdLine = append(cmdLine, consts.MONGO_GZIP_KEY)
+		cmdLine = append(cmdLine, consts.MONGO_IPV6_KEY)
 	}
 
 	if mp.gzip {
@@ -81,12 +90,6 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 
 	if mp.database != "" {
 		cmdLine = append(cmdLine, fmt.Sprintf("%s=%s", consts.MONGO_DATABASE_KEY, mp.database))
-		if mp.collection != "" {
-			cmdLine = append(cmdLine, fmt.Sprintf("%s=%s", consts.MONGO_COLLECTION_KEY, mp.collection))
-		}
-	}
-	if mp.collection == "" && mp.parallelCollectionsNum > 4 {
-		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
 	}
 
 	commandString = strings.Join(cmdLine, " ")
@@ -111,21 +114,22 @@ func (mp *MongoParams) Dump(task *structs.Task) (err error) {
 func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	var cmdLine []string
 	cmdLine = append(cmdLine, "mongorestore")
-	cmdLine = append(cmdLine, fmt.Sprintf("%s %s", consts.MONGO_HOST_KEY, mp.cfg.MONGO_RESTORE_HOST))
-	cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.cfg.MONGO_RESTORE_PORT))
+	if mp.host != "" {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s %s", consts.MONGO_HOST_KEY, mp.cfg.MONGO_RESTORE_HOST))
+	}
+	if mp.port > 0 {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.cfg.MONGO_RESTORE_PORT))
+	}
 	if mp.isUseAuth() {
 		auth := fmt.Sprintf("%s %s %s %s", consts.MONGO_LOGIN_KEY, mp.login, consts.MONGO_PASS_KEY, mp.password)
 		cmdLine = append(cmdLine, auth)
 	}
 	if mp.ipv6 {
-		cmdLine = append(cmdLine, consts.MONGO_GZIP_KEY)
+		cmdLine = append(cmdLine, consts.MONGO_IPV6_KEY)
 	}
 	if mp.gzip {
 		cmdLine = append(cmdLine, consts.MONGO_GZIP_KEY)
 	}
-	//	if mp.collection == "" && mp.parallelCollectionsNum > 4 {
-	//		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
-	//	}
 	dir := fmt.Sprintf("-d %s '%s/%s'", mp.database, mp.dumpFolder, mp.database)
 	cmdLine = append(cmdLine, dir)
 	cmdLine = append(cmdLine, "--stopOnError")

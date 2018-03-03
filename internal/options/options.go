@@ -54,7 +54,7 @@ func InitControlConfig() *ShkaffConfig {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	if file, err = ioutil.ReadFile("/home/deslum/src/shkaff/config.json"); err != nil {
+	if file, err = ioutil.ReadFile("/home/yuri/src/shkaff/config.json"); err != nil {
 		log.Fatalln(err)
 		return nil
 	}
