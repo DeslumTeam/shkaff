@@ -13,9 +13,8 @@ before_install:
   - docker-compose -f deploy/docker-compose.yml up -d
   - go get github.com/tools/godep
   - godep restore
-  - sleep 35
 script:
 - make test-ci
-- sudo ./shkaff
+- sudo service shkaff install
 - sudo service shkaff start
 - godep go test ./...
