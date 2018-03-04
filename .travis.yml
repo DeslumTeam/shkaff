@@ -14,6 +14,7 @@ before_install:
   - go get github.com/tools/godep
   - godep restore
 script:
+- sleep 30
 - make test-ci
 - sudo ./shkaff install
 - sudo service shkaff start
