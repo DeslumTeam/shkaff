@@ -16,6 +16,6 @@ before_install:
   - sleep 35
 script:
 - make test-ci
-- sudo ./shkaff install
+- sudo ./shkaff
 - sudo service shkaff start
 - godep go test ./...
