@@ -2,10 +2,9 @@ version: "2"
 
 services:
   PostgreSQL:
-    restart: always
     image: postgres:latest
     ports:
-      - "5432:15432"
+      - "15432:5432"
     environment:
       - POSTGRES_PASSWORD=test
       - POSTGRES_USER=test
@@ -14,7 +13,6 @@ services:
       - ./maindb/shkaff.sql:/docker-entrypoint-initdb.d/shkaff.sql
 
   MongoDB:
-    restart: always
     image: mongo:latest
     environment:
       - MONGODB_USER=test
@@ -26,7 +24,6 @@ services:
       - ./mongodb_test:/opt
 
   MongoDB-Restore:
-    restart: always
     image: mongo:latest
     environment:
       - MONGODB_USER=test
@@ -38,7 +35,6 @@ services:
       - ./mongodb_test:/opt
 
   RabbitMQ:
-    restart: always
     image: "rabbitmq:latest"
     environment:
       - RABBITMQ_DEFAULT_USER=shkaff
@@ -52,7 +48,6 @@ services:
 
 
   ClickHouse-Server:
-    restart: always
     image: yandex/clickhouse-server
     ports:
       - "8123:8123"
