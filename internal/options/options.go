@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"shkaff/internal/consts"
-	"shkaff/internal/logger"
 	"sync"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
+	"github.com/DeslumTeam/shkaff/internal/logger"
 
 	logging "github.com/op/go-logging"
 )
@@ -54,7 +55,7 @@ func InitControlConfig() *ShkaffConfig {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	if file, err = ioutil.ReadFile("/home/yuri/src/shkaff/config.json"); err != nil {
+	if file, err = ioutil.ReadFile("/home/deslum/src/shkaff/config.json"); err != nil {
 		log.Fatalln(err)
 		return nil
 	}

@@ -1,11 +1,12 @@
 package worker
 
 import (
-	"shkaff/apps/statsender"
-	"shkaff/drivers/maindb"
-	"shkaff/drivers/rmq/consumer"
-	"shkaff/internal/databases"
 	"testing"
+
+	"github.com/DeslumTeam/shkaff/apps/statsender"
+	"github.com/DeslumTeam/shkaff/drivers/maindb"
+	"github.com/DeslumTeam/shkaff/drivers/rmq/consumer"
+	"github.com/DeslumTeam/shkaff/internal/databases"
 
 	logging "github.com/op/go-logging"
 )

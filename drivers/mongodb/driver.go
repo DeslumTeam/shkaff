@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
-	"shkaff/internal/consts"
-	"shkaff/internal/databases"
-	"shkaff/internal/options"
-	"shkaff/internal/structs"
 	"strings"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
+	"github.com/DeslumTeam/shkaff/internal/databases"
+	"github.com/DeslumTeam/shkaff/internal/options"
+	"github.com/DeslumTeam/shkaff/internal/structs"
 )
 
 var (
@@ -109,7 +110,7 @@ func (mp *MongoParams) Dump(task *structs.Task) (err error) {
 	if reResult != "" {
 		return
 	}
-	return errors.New("Restore: " + dumpResult)
+	return errors.New("Dump: " + dumpResult)
 }
 func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	var cmdLine []string

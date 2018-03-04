@@ -3,9 +3,10 @@ package mongodb
 import (
 	"encoding/json"
 	"fmt"
-	"shkaff/internal/logger"
-	"shkaff/internal/structs"
 	"time"
+
+	"github.com/DeslumTeam/shkaff/internal/logger"
+	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	logging "github.com/op/go-logging"
 	"gopkg.in/mgo.v2"

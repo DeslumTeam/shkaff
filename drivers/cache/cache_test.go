@@ -3,8 +3,9 @@ package cache
 import (
 	"os"
 	"reflect"
-	"shkaff/internal/consts"
 	"testing"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )

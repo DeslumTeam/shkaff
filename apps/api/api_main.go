@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
-	"shkaff/drivers/maindb"
-	"shkaff/drivers/stat"
-	"shkaff/internal/logger"
-	"shkaff/internal/options"
+
+	"github.com/DeslumTeam/shkaff/drivers/maindb"
+	"github.com/DeslumTeam/shkaff/drivers/stat"
+	"github.com/DeslumTeam/shkaff/internal/logger"
+	"github.com/DeslumTeam/shkaff/internal/options"
 
 	"github.com/gin-gonic/gin"
 	logging "github.com/op/go-logging"

@@ -1,6 +1,6 @@
 package databases
 
-import "shkaff/internal/structs"
+import "github.com/DeslumTeam/shkaff/internal/structs"
 
 type DatabaseDriver interface {
 	Dump(task *structs.Task) (err error)

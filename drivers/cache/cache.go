@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"shkaff/internal/consts"
 	"time"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )

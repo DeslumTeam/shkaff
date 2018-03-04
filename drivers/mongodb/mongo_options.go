@@ -1,6 +1,6 @@
 package mongodb
 
-import "shkaff/internal/options"
+import "github.com/DeslumTeam/shkaff/internal/options"
 
 type fields struct {
 	cfg                    *options.ShkaffConfig
@@ -193,6 +193,16 @@ var (
 				cfg: options.InitControlConfig(),
 			},
 			wantCommandString: "mongodump",
+		},
+		{
+			name: "With Host Port and Database",
+			fields: fields{
+				cfg:      options.InitControlConfig(),
+				host:     "127.0.0.1",
+				port:     27017,
+				database: "testDB",
+			},
+			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --db=testDB",
 		},
 	}
 )

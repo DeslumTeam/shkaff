@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"fmt"
-	"shkaff/internal/consts"
-	"shkaff/internal/logger"
-	"shkaff/internal/options"
-	"shkaff/internal/structs"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
+	"github.com/DeslumTeam/shkaff/internal/logger"
+	"github.com/DeslumTeam/shkaff/internal/options"
+	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

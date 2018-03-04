@@ -2,10 +2,11 @@ package producer
 
 import (
 	"fmt"
-	"shkaff/internal/consts"
-	"shkaff/internal/logger"
-	"shkaff/internal/options"
 	"time"
+
+	"github.com/DeslumTeam/shkaff/internal/consts"
+	"github.com/DeslumTeam/shkaff/internal/logger"
+	"github.com/DeslumTeam/shkaff/internal/options"
 
 	logging "github.com/op/go-logging"
 	"github.com/streadway/amqp"

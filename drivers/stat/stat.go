@@ -3,10 +3,11 @@ package stat
 import (
 	"fmt"
 	"log"
-	"shkaff/internal/options"
-	"shkaff/internal/structs"
 	"sync"
 	"time"
+
+	"github.com/DeslumTeam/shkaff/internal/options"
+	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/kshvakov/clickhouse"

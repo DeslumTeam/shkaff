@@ -3,12 +3,13 @@ package main
 import (
 	"log"
 	"os"
-	"shkaff/apps/api"
-	"shkaff/apps/operator"
-	"shkaff/apps/statsender"
-	"shkaff/apps/worker"
-	"shkaff/internal/fork"
-	"shkaff/internal/options"
+
+	"github.com/DeslumTeam/shkaff/apps/api"
+	"github.com/DeslumTeam/shkaff/apps/operator"
+	"github.com/DeslumTeam/shkaff/apps/statsender"
+	"github.com/DeslumTeam/shkaff/apps/worker"
+	"github.com/DeslumTeam/shkaff/internal/fork"
+	"github.com/DeslumTeam/shkaff/internal/options"
 )
 
 type Creater interface {

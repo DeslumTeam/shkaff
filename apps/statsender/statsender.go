@@ -2,12 +2,13 @@ package statsender
 
 import (
 	"encoding/json"
-	"shkaff/drivers/rmq/consumer"
-	"shkaff/drivers/rmq/producer"
-	"shkaff/drivers/stat"
-	"shkaff/internal/logger"
-	"shkaff/internal/structs"
 	"time"
+
+	"github.com/DeslumTeam/shkaff/drivers/rmq/consumer"
+	"github.com/DeslumTeam/shkaff/drivers/rmq/producer"
+	"github.com/DeslumTeam/shkaff/drivers/stat"
+	"github.com/DeslumTeam/shkaff/internal/logger"
+	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	logging "github.com/op/go-logging"
 )
