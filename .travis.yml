@@ -15,6 +15,6 @@ before_install:
   - godep restore
 script:
 - make test-ci
-- ./shkaff install
-- service shkaff restart
+- sudo ./shkaff install
+- sudo service shkaff restart
 - godep go test ./...
