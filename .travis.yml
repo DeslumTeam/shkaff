@@ -17,4 +17,5 @@ script:
 - make test-ci
 - sudo ./shkaff install
 - sudo service shkaff start
+- sudo service shkaff status
 - godep go test ./...
