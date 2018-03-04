@@ -1,8 +1,16 @@
+sudo: required
+
 language: go
+
+services:
+  - docker
+  - docker-compose
+
 go: 
   - 1.8
   - 1.9
 before_install:
+  - docker-compose -f deploy/docker-compose.yml up
   - go get github.com/tools/godep
   - godep restore
 script:
