@@ -9,11 +9,10 @@ import (
 	"github.com/DeslumTeam/shkaff/apps/statsender"
 	"github.com/DeslumTeam/shkaff/apps/worker"
 	"github.com/DeslumTeam/shkaff/internal/fork"
-	"github.com/DeslumTeam/shkaff/internal/options"
 )
 
 type Creater interface {
-	Init(action string, cfg options.ShkaffConfig) *Service
+	Init(action string) *Service
 }
 type Service interface {
 	Run()

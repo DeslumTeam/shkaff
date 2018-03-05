@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path"
+	"runtime"
 	"sync"
 
 	"github.com/DeslumTeam/shkaff/internal/consts"
@@ -55,7 +57,12 @@ func InitControlConfig() *ShkaffConfig {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	if file, err = ioutil.ReadFile("config.json"); err != nil {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("No caller information")
+	}
+	dir := path.Join(path.Dir(filename))
+	if file, err = ioutil.ReadFile(dir + "/../../config.json"); err != nil {
 		log.Fatalln(err)
 		return nil
 	}
