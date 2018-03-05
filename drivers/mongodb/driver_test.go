@@ -43,8 +43,8 @@ func TestMongoParams_ParamsToDumpString(t *testing.T) {
 				resultChan:             tt.fields.resultChan,
 			}
 			result := mp.ParamsToDumpString()
-			if result != tt.wantCommandString {
-				t.Errorf("Name: %s. Result %s. Want %s", tt.name, result, tt.wantCommandString)
+			if result != tt.wantDumpString {
+				t.Errorf("Name: %s. Result %s. Want %s", tt.name, result, tt.wantDumpString)
 				return
 			}
 		})
@@ -67,11 +67,11 @@ func TestMongoParams_ParamsToRestoreString(t *testing.T) {
 				dumpFolder:             tt.fields.dumpFolder,
 				resultChan:             tt.fields.resultChan,
 			}
-			_ = mp.ParamsToRestoreString()
-			// if result != tt.wantCommandString {
-			// 	t.Errorf("Name: %s. Result %s. Want %s", tt.name, result, tt.wantCommandString)
-			// 	return
-			// }
+			result := mp.ParamsToRestoreString()
+			if result != tt.wantRestoreString {
+				t.Errorf("Name: %s. Result %s. Want %s", tt.name, result, tt.wantRestoreString)
+				return
+			}
 		})
 	}
 }

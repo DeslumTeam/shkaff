@@ -65,6 +65,7 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 	if mp.host != "" {
 		cmdLine = append(cmdLine, fmt.Sprintf("%s %s", consts.MONGO_HOST_KEY, mp.host))
 	}
+
 	if mp.port > 0 {
 		cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.port))
 	}
@@ -131,8 +132,10 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	if mp.gzip {
 		cmdLine = append(cmdLine, consts.MONGO_GZIP_KEY)
 	}
-	dir := fmt.Sprintf("-d %s '%s/%s'", mp.database, mp.dumpFolder, mp.database)
-	cmdLine = append(cmdLine, dir)
+	if mp.dumpFolder != "" {
+		dir := fmt.Sprintf("-d %s '%s/%s'", mp.database, mp.dumpFolder, mp.database)
+		cmdLine = append(cmdLine, dir)
+	}
 	cmdLine = append(cmdLine, "--stopOnError")
 	cmdLine = append(cmdLine, "--drop")
 	commandString = strings.Join(cmdLine, " ")

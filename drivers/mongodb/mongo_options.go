@@ -21,7 +21,8 @@ var (
 	tests = []struct {
 		name              string
 		fields            fields
-		wantCommandString string
+		wantDumpString    string
+		wantRestoreString string
 	}{
 		{
 			name: "Full",
@@ -38,7 +39,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "ipv6 disable",
@@ -55,7 +57,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "gzip disable",
@@ -72,7 +75,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --ipv6 -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "gzip and ipv6 disable",
@@ -89,7 +93,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "Without Host",
@@ -105,7 +110,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --port 27018 -u test -p test --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "Without port",
@@ -121,7 +127,24 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 -u test -p test --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
+		},
+		{
+			name: "Without host & port",
+			fields: fields{
+				cfg:        options.InitControlConfig(),
+				login:      "test",
+				password:   "test",
+				ipv6:       true,
+				database:   "testDB",
+				collection: "",
+				gzip:       true,
+				parallelCollectionsNum: 10,
+				dumpFolder:             "/opt/dump",
+			},
+			wantDumpString:    "mongodump --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore -u test -p test --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "Without login password",
@@ -136,7 +159,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -j=10 --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "without database",
@@ -152,7 +176,8 @@ var (
 				parallelCollectionsNum: 10,
 				dumpFolder:             "/opt/dump",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test -j=10 --ipv6 --gzip",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --ipv6 --gzip -d  '/opt/dump/' --stopOnError --drop",
 		},
 		{
 			name: "Without parallelCollectionsNum",
@@ -169,7 +194,8 @@ var (
 				dumpFolder:             "/opt/dump",
 				parallelCollectionsNum: 3,
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --ipv6 --gzip -d testDB '/opt/dump/testDB' --stopOnError --drop",
 		},
 		{
 			name: "Without DumpFolder",
@@ -185,14 +211,16 @@ var (
 				gzip:       true,
 				parallelCollectionsNum: 10,
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 -u test -p test -j=10 --ipv6 --gzip --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --ipv6 --gzip --stopOnError --drop",
 		},
 		{
 			name: "Minumum",
 			fields: fields{
 				cfg: options.InitControlConfig(),
 			},
-			wantCommandString: "mongodump",
+			wantDumpString:    "mongodump",
+			wantRestoreString: "mongorestore --stopOnError --drop",
 		},
 		{
 			name: "With Host Port and Database",
@@ -202,7 +230,8 @@ var (
 				port:     27017,
 				database: "testDB",
 			},
-			wantCommandString: "mongodump --host 127.0.0.1 --port 27017 --db=testDB",
+			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --db=testDB",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --stopOnError --drop",
 		},
 	}
 )
