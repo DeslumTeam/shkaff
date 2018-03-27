@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/DeslumTeam/shkaff/apps/statsender"
 	"github.com/DeslumTeam/shkaff/drivers/cache"
 	"github.com/DeslumTeam/shkaff/drivers/maindb"
@@ -48,7 +50,7 @@ func InitOperator() (oper *Operator) {
 func (oper *Operator) Run() {
 	oper.operatorWG = sync.WaitGroup{}
 	oper.operatorWG.Add(2)
-	go oper.Aggregator()
+	go oper.aggregator()
 	go oper.TaskSender()
 	oper.log.Info("Start Operator")
 	oper.operatorWG.Wait()
@@ -87,49 +89,38 @@ func (oper *Operator) TaskSender() {
 	}
 }
 
-func (oper *Operator) Aggregator() {
-	var task = structs.Task{}
-	db := oper.postgres.DB
-	refreshTimeScan := oper.postgres.RefreshTimeScan
-	psqlUpdateTime := time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
+func (oper *Operator) aggregator() {
+	psqlUpdateTime := time.NewTimer(10 * time.Second)
 	for {
 		select {
 		case <-psqlUpdateTime.C:
 			tsNow := time.Now()
-			request := fmt.Sprintf(consts.REQUEST_GET_STARTTIME, tsNow.Month, tsNow.Day, tsNow.Hour, tsNow.Minute)
-			rows, err := db.Queryx(request)
+			request := fmt.Sprintf(
+				consts.REQUEST_GET_STARTTIME,
+				int(tsNow.Month()),
+				int(tsNow.Weekday()),
+				int(tsNow.Hour()),
+				int(tsNow.Minute()))
+			rows, err := oper.postgres.DB.Queryx(request)
 			if err != nil {
 				oper.log.Error(err)
-				psqlUpdateTime = time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
-				continue
+			} else {
+				go oper.processTask(rows)
 			}
-			for rows.Next() {
-				if err := rows.StructScan(&task); err != nil {
-					oper.log.Error(err)
-					psqlUpdateTime = time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
-					continue
-				}
-				isExist, err := oper.taskCache.ExistKV(task.UserID, task.DBSettingsID, task.TaskID)
-				if err != nil {
-					oper.log.Error(err)
-					psqlUpdateTime = time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
-					continue
-				}
-				if !isExist {
-					oper.stat.SendStatMessage(0, task.UserID, task.DBID, task.TaskID, nil)
-					err := oper.taskCache.SetKV(task.UserID, task.DBSettingsID, task.TaskID)
-					if err != nil {
-						oper.log.Error(err)
-						oper.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
-						psqlUpdateTime = time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
-						continue
-					}
-					oper.tasksChan <- task
-					oper.stat.SendStatMessage(1, task.UserID, task.DBID, task.TaskID, nil)
-				}
-
-			}
-			psqlUpdateTime = time.NewTimer(time.Duration(refreshTimeScan) * time.Second)
+			timeout := time.Duration(60 - (time.Now().Unix() - tsNow.Unix()))
+			psqlUpdateTime = time.NewTimer(timeout * time.Second)
 		}
+	}
+}
+
+func (oper *Operator) processTask(rows *sqlx.Rows) {
+	var task = structs.Task{}
+	for rows.Next() {
+		err := rows.StructScan(&task)
+		if err != nil {
+			oper.log.Error(err)
+			return
+		}
+		oper.tasksChan <- task
 	}
 }

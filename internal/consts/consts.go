@@ -37,10 +37,10 @@ const (
 	INNER JOIN shkaff.db_settings db 
 	ON t.db_id = db.db_id 
 	INNER JOIN shkaff.types tp ON tp.type_id = db.type_id
-	WHERE (months @> '{}' or months @> ARRAY[%d]) 
-	AND (days @> '{}' or days @> ARRAY[%d])
-	AND (hours @> '{}' or hours @> ARRAY[%d])
-	AND (minutes <= %d) 
+	WHERE (months @> ARRAY[%d]) 
+	AND (day_week @> ARRAY[%d])
+	AND (hours = %d)
+	AND (minutes = %d) 
 	AND t.is_active = true AND t.is_delete = false;`
 
 	REQUESR_UPDATE_ACTIVE = "UPDATE shkaff.tasks SET is_active = $1 WHERE task_id = $2 and AND is_delete = false;"

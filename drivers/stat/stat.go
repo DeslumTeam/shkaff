@@ -116,7 +116,7 @@ func (s *StatDB) StandartStatSelect() (result map[string]interface{}, err error)
 	}
 	res := make([]interface{}, len(columns))
 	resP := make([]interface{}, len(columns))
-	for i, _ := range columns {
+	for i := range columns {
 		resP[i] = &res[i]
 	}
 	err = row.Scan(resP...)
