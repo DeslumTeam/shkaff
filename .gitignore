@@ -7,6 +7,8 @@
 Icon
 pkg/
 bin/
+drivers/admin/
+drivers/mongodb/dump/
 deploy/leveldb/leveldb/
 src/github.com/
 src/golang.org/

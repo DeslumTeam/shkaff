@@ -62,7 +62,7 @@ type APITask struct {
 	Gzip        bool   `db:"gzip"`
 	Ipv6        bool   `db:"ipv6"`
 	Months      string `db:"months"`
-	Days        string `db:"days"`
+	DayWeek     string `db:"day_week"`
 	Hours       string `db:"hours"`
 	Minutes     string `db:"minutes"`
 	DumpFolder  string `db:"dumpfolder"`

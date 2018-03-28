@@ -51,7 +51,7 @@ func (oper *Operator) Run() {
 	oper.operatorWG = sync.WaitGroup{}
 	oper.operatorWG.Add(2)
 	go oper.aggregator()
-	go oper.TaskSender()
+	go oper.taskSender()
 	oper.log.Info("Start Operator")
 	oper.operatorWG.Wait()
 }
@@ -63,7 +63,7 @@ func (oper *Operator) Stop() {
 	oper.log.Info("Stop Operator")
 }
 
-func (oper *Operator) TaskSender() {
+func (oper *Operator) taskSender() {
 	var messages []structs.Task
 	rabbit := oper.rabbit
 	for task := range oper.tasksChan {

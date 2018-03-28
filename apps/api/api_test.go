@@ -95,8 +95,8 @@ func TestUpdateTask(t *testing.T) {
 		"databases":    "{}",
 		"gzip":         "false",
 		"months":       "{1,2,3,4,5,6,7,8,9}",
-		"days":         "{12,14,17}",
-		"hours":        "{1}",
+		"day_week":     "{1,2,3,4}",
+		"hours":        "1",
 		"minutes":      "50",
 	}
 	jsonStr, err := json.Marshal(form)
@@ -189,8 +189,8 @@ func TestCreateTask(t *testing.T) {
 		"databases":    "{}",
 		"gzip":         "false",
 		"months":       "{1,2,3,4,5,6,7,8,9}",
-		"days":         "{12,14,17}",
-		"hours":        "{1}",
+		"day_week":     "{1,5,7}",
+		"hours":        "1",
 		"minutes":      "50",
 	}
 	jsonStr, err := json.Marshal(form)

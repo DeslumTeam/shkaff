@@ -63,8 +63,8 @@ func (ps *PSQL) GetTask(taskId int, isSimple bool) (task structs.APITask, err er
 		gzip,
 		ipv6,
 		array_to_string(months, ',', '') as months,
-		array_to_string(days, ',', '') as days,
-		array_to_string(hours, ',', '') as hours,
+		array_to_string(day_week, ',', '') as day_week,
+		hours,
 		minutes 
 	FROM shkaff.tasks 
     WHERE task_id = $1 and is_delete = false`
@@ -126,8 +126,8 @@ func (ps *PSQL) GetTaskByName(taskName string) (task structs.APITask, err error)
 		gzip,
 		ipv6,
 		array_to_string(months, ',', '') as months,
-		array_to_string(days, ',', '') as days,
-		array_to_string(hours, ',', '') as hours,
+		array_to_string(day_week, ',', '') as day_week,
+		hours,
 		minutes 
 	FROM shkaff.tasks 
     WHERE task_name = $1 AND is_delete = false`
