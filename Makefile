@@ -13,8 +13,7 @@ build:
 .NOTPARALLEL: test-ci
 all-tests:
 	CGO_ENABLED=0 godep go build -v -o $(APP)
-	docker-compose -f deploy/docker-compose.yml up -d
-	sleep 30
+	sleep 20
 	./shkaff &
 	godep go test ./... -v
 
