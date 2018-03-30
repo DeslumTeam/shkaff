@@ -74,7 +74,12 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 	}
 
 	if mp.isUseAuth() {
-		auth := fmt.Sprintf("%s %s %s %s", consts.MONGO_LOGIN_KEY, mp.login, consts.MONGO_PASS_KEY, mp.password)
+		// TODO admin is different
+		auth := fmt.Sprintf("%s %s %s %s %s admin", consts.MONGO_LOGIN_KEY,
+			mp.login,
+			consts.MONGO_PASS_KEY,
+			mp.password,
+			consts.MONGO_AUTH_DB_KEY)
 		cmdLine = append(cmdLine, auth)
 	}
 
@@ -101,6 +106,7 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 func (mp *MongoParams) Dump(task *structs.Task) (err error) {
 	var stderr bytes.Buffer
 	mp.setDBSettings(task)
+	fmt.Println(mp.ParamsToDumpString())
 	cmd := exec.Command("sh", "-c", mp.ParamsToDumpString())
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {

@@ -13,22 +13,22 @@ services:
       - ./maindb/shkaff.sql:/docker-entrypoint-initdb.d/shkaff.sql
 
   MongoDB:
-    image: mongo:latest
+    image: aashreys/mongo-auth:latest
     environment:
-      - MONGODB_USER=test
-      - MONGODB_DATABASE=test
-      - MONGODB_PASS=test
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=shkaff
+      - MONGODB_ADMIN_PASS=shkaff
     ports:
       - "27017:27017"
     volumes:
       - ./mongodb_test:/opt
 
   MongoDB-Restore:
-    image: mongo:latest
+    image: aashreys/mongo-auth:latest
     environment:
-      - MONGODB_USER=test
-      - MONGODB_DATABASE=test
-      - MONGODB_PASS=test
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=shkaff
+      - MONGODB_ADMIN_PASS=shkaff
     ports:
       - "27018:27017"
     volumes:

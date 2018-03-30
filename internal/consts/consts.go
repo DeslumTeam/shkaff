@@ -52,6 +52,7 @@ const (
 	MONGO_PORT_KEY        = "--port"
 	MONGO_LOGIN_KEY       = "-u"
 	MONGO_PASS_KEY        = "-p"
+	MONGO_AUTH_DB_KEY     = "--authenticationDatabase"
 	MONGO_IPV6_KEY        = "--ipv6"
 	MONGO_DATABASE_KEY    = "--db"
 	MONGO_COLLECTION_KEY  = "--collection"
