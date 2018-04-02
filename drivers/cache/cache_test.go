@@ -90,7 +90,7 @@ func TestCache_SetKV(t *testing.T) {
 				return
 			}
 			if !res {
-				t.Error("Key %v|%v|%v not exists", tt.args.userID, tt.args.dbID, tt.args.taskID)
+				t.Errorf("Key %d|%d|%d not exists", tt.args.userID, tt.args.dbID, tt.args.taskID)
 			}
 			err = cache.DeleteKV(tt.args.userID, tt.args.dbID, tt.args.taskID)
 			if err != nil {
