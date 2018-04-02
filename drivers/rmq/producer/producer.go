@@ -22,6 +22,7 @@ type RMQ struct {
 }
 
 func InitAMQPProducer(queueName string) (qp *RMQ) {
+	var err error
 	cfg := options.InitControlConfig()
 	qp = new(RMQ)
 	qp.uri = fmt.Sprintf(consts.RMQ_URI_TEMPLATE, cfg.RMQ_USER,
@@ -31,35 +32,36 @@ func InitAMQPProducer(queueName string) (qp *RMQ) {
 		cfg.RMQ_VHOST)
 	qp.queueName = queueName
 	qp.log = logger.GetLogs("RMQ Producer")
-	qp.initConnection()
-	return
-}
-
-func (qp *RMQ) initConnection() {
-	var err error
 	for {
 		qp.Connect, err = amqp.Dial(qp.uri)
-		if err == nil {
-			break
+		if err != nil {
+			qp.log.Errorf("RMQ: %s not connected\n", qp.uri)
+			time.Sleep(time.Second * 5)
+			continue
 		}
-		qp.log.Errorf("RMQ: %s not connected\n", qp.uri)
-		time.Sleep(time.Second * 5)
+		qp.Channel, err = qp.Connect.Channel()
+		if err != nil {
+			qp.log.Errorf("Channel error %s", err)
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		_, err = qp.Channel.QueueDeclare(
+			qp.queueName, // name
+			true,         // durable
+			false,        // delete when unused
+			false,        // exclusive
+			false,        // no-wait
+			nil,          // arguments
+		)
+		if err != nil {
+			qp.log.Errorf("Queue declare error %s", err)
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		qp.Publishing = new(amqp.Publishing)
+		qp.Publishing.ContentType = "application/json"
+		return
 	}
-	if qp.Channel, err = qp.Connect.Channel(); err != nil {
-		qp.log.Fatal(err)
-	}
-	if _, err = qp.Channel.QueueDeclare(
-		qp.queueName, // name
-		true,         // durable
-		false,        // delete when unused
-		false,        // exclusive
-		false,        // no-wait
-		nil,          // arguments
-	); err != nil {
-		qp.log.Fatal(err)
-	}
-	qp.Publishing = new(amqp.Publishing)
-	qp.Publishing.ContentType = "application/json"
 }
 
 func (qp *RMQ) Publish(body []byte) (err error) {

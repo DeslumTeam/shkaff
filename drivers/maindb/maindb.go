@@ -19,10 +19,9 @@ import (
 )
 
 type PSQL struct {
-	uri             string
-	DB              *sqlx.DB
-	RefreshTimeScan int
-	log             *logging.Logger
+	uri string
+	DB  *sqlx.DB
+	log *logging.Logger
 }
 
 func InitPSQL() (ps *PSQL) {
@@ -34,17 +33,15 @@ func InitPSQL() (ps *PSQL) {
 		cfg.DATABASE_HOST,
 		cfg.DATABASE_PORT,
 		cfg.DATABASE_DB)
-	ps.RefreshTimeScan = cfg.REFRESH_DATABASE_SCAN
 	ps.log = logger.GetLogs("MainDB")
 	for {
 		ps.DB, err = sqlx.Connect("postgres", ps.uri)
-		if err == nil {
-			break
+		if err == nil && ps.DB != nil {
+			return
 		}
-		ps.log.Error("PSQL: %s not connected. Error %s\n", ps.uri, err.Error())
+		ps.log.Errorf("PSQL: %s not connected. Error %s\n", ps.uri, err.Error())
 		time.Sleep(time.Second * 5)
 	}
-	return
 }
 
 func (ps *PSQL) GetTask(taskId int, isSimple bool) (task structs.APITask, err error) {

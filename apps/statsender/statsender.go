@@ -20,10 +20,11 @@ type StatSender struct {
 }
 
 func Run() (statSender *StatSender) {
-	statSender = new(StatSender)
-	statSender.sChan = make(chan structs.StatMessage)
-	statSender.producer = producer.InitAMQPProducer("shkaff_stat")
-	statSender.log = logger.GetLogs("StatSender")
+	statSender = &StatSender{
+		sChan:    make(chan structs.StatMessage),
+		producer: producer.InitAMQPProducer("shkaff_stat"),
+		log:      logger.GetLogs("StatSender"),
+	}
 	statSender.log.Info("Start StatSender")
 	go statSender.statSender()
 	return

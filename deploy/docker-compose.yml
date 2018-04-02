@@ -48,14 +48,14 @@ services:
 
 
   ClickHouse-Server:
-    image: yandex/clickhouse-server
+    image: "yandex/clickhouse-server:latest"
     ports:
       - "8123:8123"
       - "9000:9000"
       - "9009:9009"
 
   ClickHouse-Client:
-    image: yandex/clickhouse-client
+    image: "yandex/clickhouse-client:latest"
     links:
       - ClickHouse-Server:ClickHouse-Server
     entrypoint: /bin/bash
