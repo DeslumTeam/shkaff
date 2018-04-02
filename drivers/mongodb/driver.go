@@ -151,7 +151,8 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 		cmdLine = append(cmdLine, db)
 	}
 	if mp.dumpFolder != "" {
-		cmdLine = append(cmdLine, mp.dumpFolder)
+		restorePath := fmt.Sprintf("--dir=%s", mp.dumpFolder)
+		cmdLine = append(cmdLine, restorePath)
 	}
 
 	cmdLine = append(cmdLine, "--drop -v")

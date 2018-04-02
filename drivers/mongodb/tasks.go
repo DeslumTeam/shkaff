@@ -17,9 +17,11 @@ var tests_tasks = []struct {
 		name: "0",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:     "0.0.0.0",
-				Port:     27017,
-				Database: "admin",
+				Host:       "0.0.0.0",
+				Port:       27017,
+				DBUser:     "shkaff",
+				DBPassword: "shkaff",
+				Database:   "admin",
 			},
 		},
 	},
@@ -27,10 +29,12 @@ var tests_tasks = []struct {
 		name: "1",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:     "0.0.0.0",
-				Port:     27017,
-				Database: "admin",
-				Gzip:     true,
+				Host:       "0.0.0.0",
+				Port:       27017,
+				DBUser:     "shkaff",
+				DBPassword: "shkaff",
+				Database:   "admin",
+				Gzip:       true,
 			},
 		},
 	},
@@ -40,6 +44,8 @@ var tests_tasks = []struct {
 			task: &structs.Task{
 				Host:        "0.0.0.0",
 				Port:        27017,
+				DBUser:      "shkaff",
+				DBPassword:  "shkaff",
 				Database:    "admin",
 				ThreadCount: 10,
 			},
@@ -51,6 +57,8 @@ var tests_tasks = []struct {
 			task: &structs.Task{
 				Host:        "0.0.0.0",
 				Port:        27017,
+				DBUser:      "shkaff",
+				DBPassword:  "shkaff",
 				Database:    "admin",
 				ThreadCount: 10,
 			},
@@ -61,6 +69,8 @@ var tests_tasks = []struct {
 		args: argsTaskCases{
 			task: &structs.Task{
 				Database:    "admin",
+				DBUser:      "shkaff",
+				DBPassword:  "shkaff",
 				ThreadCount: 10,
 				DumpFolder:  "../",
 			},
@@ -69,7 +79,10 @@ var tests_tasks = []struct {
 	{
 		name: "5",
 		args: argsTaskCases{
-			task: &structs.Task{},
+			task: &structs.Task{
+				DBUser:     "shkaff",
+				DBPassword: "shkaff",
+			},
 		},
 	},
 }

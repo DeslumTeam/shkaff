@@ -40,7 +40,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "ipv6 disable",
@@ -58,7 +58,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "gzip disable",
@@ -76,7 +76,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "gzip and ipv6 disable",
@@ -94,7 +94,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without Host",
@@ -111,7 +111,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without port",
@@ -128,7 +128,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without host & port",
@@ -144,7 +144,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without login password",
@@ -160,7 +160,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "without database",
@@ -177,7 +177,7 @@ var (
 				dumpFolder:             "/opt/dump",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip -d  /opt/dump/ --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without parallelCollectionsNum",
@@ -195,7 +195,7 @@ var (
 				parallelCollectionsNum: 3,
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --out=/opt/dump -u test -p test --authenticationDatabase=admin --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* /opt/dump --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --dir=/opt/dump --drop -v",
 		},
 		{
 			name: "Without DumpFolder",
@@ -212,7 +212,7 @@ var (
 				parallelCollectionsNum: 10,
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 -u test -p test --authenticationDatabase=admin -j=10 --ipv6 --gzip --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 -u test -p test --authenticationDatabase=admin --ipv6 --gzip --nsInclude=testDB.* --drop -v",
 		},
 		{
 			name: "Minumum",
@@ -231,7 +231,7 @@ var (
 				database: "testDB",
 			},
 			wantDumpString:    "mongodump --host 127.0.0.1 --port 27017 --db=testDB -v",
-			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --drop -v",
+			wantRestoreString: "mongorestore --host 0.0.0.0 --port 27018 --nsInclude=testDB.* --drop -v",
 		},
 	}
 )
