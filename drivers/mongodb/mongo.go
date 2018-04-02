@@ -20,6 +20,7 @@ type mongoCliStruct struct {
 
 func (m *mongoCliStruct) emptyDB() {
 	url := fmt.Sprintf("%s:%d", m.task.Host, m.task.Port)
+
 	session, err := mgo.DialWithTimeout(url, 5*time.Second)
 	if err != nil {
 		m.log.Error(err)
@@ -27,6 +28,14 @@ func (m *mongoCliStruct) emptyDB() {
 	}
 	defer session.Close()
 
+	if m.task.DBUser != "" && m.task.DBPassword != "" {
+		admindb := session.DB("admin")
+		err = admindb.Login(m.task.DBUser, m.task.DBPassword)
+		if err != nil {
+			m.log.Errorf("+++ %v \n", err)
+			return
+		}
+	}
 	dbNames, err := session.DatabaseNames()
 	if err != nil {
 		m.log.Error(err)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -17,9 +18,9 @@ import (
 var (
 	MONGO_SUCESS_DUMP = regexp.MustCompile(`\tdone\ dumping`)
 	RESTORE_ERRORS    = []*regexp.Regexp{
-		regexp.MustCompile(`exit\ status\ 1`),
+		regexp.MustCompile(`exit\\sstatus\\s1`),
 		regexp.MustCompile(`skipping...`),
-		regexp.MustCompile(`server\\ returned\\ error\\ on\\ SASL\\ authentication\\ step\\:\\ Authentication\\ failed`)}
+		regexp.MustCompile(`server\\sreturned\\serror\\son\\sSASL\\sauthentication\\sstep\\:\\sAuthentication\\sfailed`)}
 )
 
 type MongoParams struct {
@@ -75,7 +76,7 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 
 	if mp.isUseAuth() {
 		// TODO admin is different
-		auth := fmt.Sprintf("%s %s %s %s %s admin", consts.MONGO_LOGIN_KEY,
+		auth := fmt.Sprintf("%s %s %s %s %s=admin", consts.MONGO_LOGIN_KEY,
 			mp.login,
 			consts.MONGO_PASS_KEY,
 			mp.password,
@@ -98,7 +99,7 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 	if mp.database != "" {
 		cmdLine = append(cmdLine, fmt.Sprintf("%s=%s", consts.MONGO_DATABASE_KEY, mp.database))
 	}
-
+	cmdLine = append(cmdLine, "-v")
 	commandString = strings.Join(cmdLine, " ")
 	return
 }
@@ -106,13 +107,13 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 func (mp *MongoParams) Dump(task *structs.Task) (err error) {
 	var stderr bytes.Buffer
 	mp.setDBSettings(task)
-	fmt.Println(mp.ParamsToDumpString())
 	cmd := exec.Command("sh", "-c", mp.ParamsToDumpString())
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
 	dumpResult := stderr.String()
+	log.Println(dumpResult)
 	reResult := MONGO_SUCESS_DUMP.FindString(dumpResult)
 	if reResult != "" {
 		return
@@ -128,22 +129,32 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	if mp.port > 0 {
 		cmdLine = append(cmdLine, fmt.Sprintf("%s %d", consts.MONGO_PORT_KEY, mp.cfg.MONGO_RESTORE_PORT))
 	}
+
 	if mp.isUseAuth() {
-		auth := fmt.Sprintf("%s %s %s %s", consts.MONGO_LOGIN_KEY, mp.login, consts.MONGO_PASS_KEY, mp.password)
+		// TODO admin is different
+		auth := fmt.Sprintf("%s %s %s %s %s=admin", consts.MONGO_LOGIN_KEY,
+			mp.login,
+			consts.MONGO_PASS_KEY,
+			mp.password,
+			consts.MONGO_AUTH_DB_KEY)
 		cmdLine = append(cmdLine, auth)
 	}
+
 	if mp.ipv6 {
 		cmdLine = append(cmdLine, consts.MONGO_IPV6_KEY)
 	}
 	if mp.gzip {
 		cmdLine = append(cmdLine, consts.MONGO_GZIP_KEY)
 	}
-	if mp.dumpFolder != "" {
-		dir := fmt.Sprintf("-d %s '%s/%s'", mp.database, mp.dumpFolder, mp.database)
-		cmdLine = append(cmdLine, dir)
+	if mp.database != "" {
+		db := fmt.Sprintf("--nsInclude=%s.*", mp.database)
+		cmdLine = append(cmdLine, db)
 	}
-	cmdLine = append(cmdLine, "--stopOnError")
-	cmdLine = append(cmdLine, "--drop")
+	if mp.dumpFolder != "" {
+		cmdLine = append(cmdLine, mp.dumpFolder)
+	}
+
+	cmdLine = append(cmdLine, "--drop -v")
 	commandString = strings.Join(cmdLine, " ")
 	return
 }
@@ -157,6 +168,7 @@ func (mp *MongoParams) Restore(task *structs.Task) (err error) {
 		return err
 	}
 	restoreResult := stderr.String()
+	log.Println(restoreResult)
 	for _, restoreErrorPattern := range RESTORE_ERRORS {
 		reResult := restoreErrorPattern.FindString(restoreResult)
 		if reResult != "" {

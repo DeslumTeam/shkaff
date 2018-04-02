@@ -72,21 +72,21 @@ func (w *worker) worker() {
 	w.workRabbit.InitConnection(w.databaseName)
 	dbDriver, err := w.getDatabaseType()
 	if err != nil {
-		w.log.Error(err)
+		w.log.Errorf("-1 %v \n ", err)
 		return
 	}
 	w.log.Infof("Start Worker for %s\n", w.databaseName)
 	for message := range w.workRabbit.Msgs {
 		err := json.Unmarshal(message.Body, &task)
 		if err != nil {
-			w.log.Error(err)
+			w.log.Errorf("0 %v \n ", err)
 			continue
 		}
 		w.stat.SendStatMessage(3, task.UserID, task.DBID, task.TaskID, nil)
 		err = dbDriver.Dump(task)
 		if err != nil {
 			w.stat.SendStatMessage(5, task.UserID, task.DBID, task.TaskID, err)
-			w.log.Error(err)
+			w.log.Errorf("1 %v \n ", err)
 			continue
 		}
 		w.stat.SendStatMessage(4, task.UserID, task.DBID, task.TaskID, nil)
@@ -94,7 +94,7 @@ func (w *worker) worker() {
 		err = dbDriver.Restore(task)
 		if err != nil {
 			w.stat.SendStatMessage(8, task.UserID, task.DBID, task.TaskID, err)
-			w.log.Error(err)
+			w.log.Errorf("2 %v \n ", err)
 			continue
 		}
 		w.stat.SendStatMessage(7, task.UserID, task.DBID, task.TaskID, err)
