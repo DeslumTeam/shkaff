@@ -31,65 +31,67 @@ type Operator struct {
 	stat       *statsender.StatSender
 }
 
-func InitOperator() (oper *Operator) {
+func InitOperator() (o *Operator) {
 	var err error
-	oper = &Operator{
+	o = &Operator{
 		postgres:  maindb.InitPSQL(),
 		rabbit:    producer.InitAMQPProducer("mongodb"),
 		tasksChan: make(chan structs.Task),
 		log:       logger.GetLogs("Operator"),
 		stat:      statsender.Run(),
 	}
-	oper.taskCache, err = cache.InitCacheDB()
+	o.taskCache, err = cache.InitCacheDB()
 	if err != nil {
-		oper.log.Fatal(err)
+		o.log.Fatal(err)
 	}
 	return
 }
 
-func (oper *Operator) Run() {
-	oper.operatorWG = sync.WaitGroup{}
-	oper.operatorWG.Add(2)
-	go oper.aggregator()
-	go oper.taskSender()
-	oper.log.Info("Start Operator")
-	oper.operatorWG.Wait()
+func (o *Operator) Run() {
+	o.operatorWG = sync.WaitGroup{}
+	o.operatorWG.Add(2)
+	go o.aggregator()
+	go o.taskSender()
+	o.log.Info("Start Operator")
+	o.operatorWG.Wait()
 }
 
-func (oper *Operator) Stop() {
+func (o *Operator) Stop() {
 	for i := 0; i < 2; i++ {
-		oper.operatorWG.Done()
+		o.operatorWG.Done()
 	}
-	oper.log.Info("Stop Operator")
+	o.log.Info("Stop Operator")
 }
 
-func (oper *Operator) taskSender() {
+func (o *Operator) taskSender() {
 	var messages []structs.Task
-	rabbit := oper.rabbit
-	for task := range oper.tasksChan {
+	for task := range o.tasksChan {
+
 		switch dbType := task.DBType; dbType {
 		case "mongodb":
 			messages = mongodb.GetMessages(task)
 		default:
 			err := fmt.Sprintf("Driver for Database %s not found", task.DBType)
-			oper.log.Info(err)
+			o.log.Info(err)
 			continue
 		}
 		for _, msg := range messages {
 			body, err := json.Marshal(msg)
 			if err != nil {
-				oper.log.Error(err)
+				o.log.Error(err)
 				continue
 			}
-			if err := rabbit.Publish(body); err != nil {
-				oper.log.Error(err)
+
+			err = o.rabbit.Publish(body)
+			if err != nil {
+				o.log.Error(err)
 				continue
 			}
 		}
 	}
 }
 
-func (oper *Operator) aggregator() {
+func (o *Operator) aggregator() {
 	psqlUpdateTime := time.NewTimer(10 * time.Second)
 	for {
 		select {
@@ -101,11 +103,11 @@ func (oper *Operator) aggregator() {
 				int(tsNow.Weekday()),
 				int(tsNow.Hour()),
 				int(tsNow.Minute()))
-			rows, err := oper.postgres.DB.Queryx(request)
+			rows, err := o.postgres.DB.Queryx(request)
 			if err != nil {
-				oper.log.Error(err)
+				o.log.Error(err)
 			} else {
-				go oper.processTask(rows)
+				go o.processTask(rows)
 			}
 			timeout := time.Duration(60 - (time.Now().Unix() - tsNow.Unix()))
 			psqlUpdateTime = time.NewTimer(timeout * time.Second)
@@ -113,16 +115,16 @@ func (oper *Operator) aggregator() {
 	}
 }
 
-func (oper *Operator) processTask(rows *sqlx.Rows) {
+func (o *Operator) processTask(rows *sqlx.Rows) {
 	var task = structs.Task{}
 	for rows.Next() {
 		err := rows.StructScan(&task)
 		if err != nil {
-			oper.log.Error(err)
+			o.log.Error(err)
 			return
 		}
-		dateFolder := time.Now().Format("2006-01-02_15_03")
+		dateFolder := time.Now().Format("2006-01-02")
 		task.DumpFolder = fmt.Sprintf("%s/%s", task.DumpFolder, dateFolder)
-		oper.tasksChan <- task
+		o.tasksChan <- task
 	}
 }

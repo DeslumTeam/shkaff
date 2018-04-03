@@ -7,98 +7,113 @@ import (
 	"sync"
 
 	"github.com/DeslumTeam/shkaff/apps/statsender"
-	"github.com/DeslumTeam/shkaff/drivers/maindb"
 	"github.com/DeslumTeam/shkaff/drivers/mongodb"
 	"github.com/DeslumTeam/shkaff/drivers/rmq/consumer"
 	"github.com/DeslumTeam/shkaff/internal/databases"
 	"github.com/DeslumTeam/shkaff/internal/logger"
-	"github.com/DeslumTeam/shkaff/internal/options"
 	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	logging "github.com/op/go-logging"
 )
 
 type workersStarter struct {
-	workerWG    sync.WaitGroup
-	workers     []*worker
-	workerCount int
+	workers    map[string]map[int]*worker // map[driverName]map[taskID]*Worker
+	workRabbit *consumer.RMQ
+	log        *logging.Logger
 }
 
 type worker struct {
-	dumpChan     chan string
+	workerWG     sync.WaitGroup
+	dumpChan     chan *structs.Task
 	databaseName string
-	postgres     *maindb.PSQL
-	workRabbit   *consumer.RMQ
-	stat         *statsender.StatSender
 	log          *logging.Logger
+	stat         *statsender.StatSender
+	dbDriver     databases.DatabaseDriver
 }
 
 func InitWorker() (ws *workersStarter) {
-	cfg := options.InitControlConfig()
-	ws = new(workersStarter)
-	ws.workerCount = cfg.WORKERS["mongodb"]
-	stat := statsender.Run()
-	ws.workerWG = sync.WaitGroup{}
-	for i := 0; i < ws.workerCount; i++ {
-		worker := &worker{
-			databaseName: "mongodb",
-			dumpChan:     make(chan string, 100),
-			postgres:     maindb.InitPSQL(),
-			workRabbit:   consumer.InitAMQPConsumer(),
-			stat:         stat,
-			log:          logger.GetLogs("Worker"),
-		}
-		ws.workers = append(ws.workers, worker)
+	return &workersStarter{
+		workRabbit: consumer.InitAMQPConsumer(),
+		workers:    make(map[string]map[int]*worker),
+		log:        logger.GetLogs("WorkerManager"),
 	}
-	return ws
 }
 
 func (ws *workersStarter) Run() {
-	ws.workerWG.Add(ws.workerCount)
-	for _, w := range ws.workers {
-		go w.worker()
+	var task *structs.Task
+	ws.log.Infof("Run WorkersManager")
+	for message := range ws.workRabbit.Msgs {
+		err := json.Unmarshal(message.Body, &task)
+		if err != nil {
+			ws.log.Error(err)
+			continue
+		}
+		if ws.workers[task.DBType] == nil {
+			ws.workers[task.DBType] = make(map[int]*worker)
+		}
+		if ws.workers[task.DBType][task.TaskID] == nil {
+			ws.workers[task.DBType][task.TaskID] = new(worker)
+			ws.workers[task.DBType][task.TaskID].Run()
+		}
+		err = ws.workers[task.DBType][task.TaskID].Send(task)
+		if err != nil {
+			ws.log.Error(err)
+			continue
+		}
 	}
-	ws.workerWG.Wait()
 }
 
 func (ws *workersStarter) Stop() {
-	for w := 0; w < ws.workerCount; w++ {
-		ws.workerWG.Done()
-	}
+	ws.workRabbit.Channel.Close()
+	return
 }
 
-func (w *worker) worker() {
-	var task *structs.Task
-	w.workRabbit.InitConnection(w.databaseName)
-	dbDriver, err := w.getDatabaseType()
+func (w *worker) Run() {
+	w.stat = statsender.Run()
+	w.dumpChan = make(chan *structs.Task)
+	w.workerWG.Add(1)
+	go w.proc()
+	w.workerWG.Wait()
+}
+
+func (w *worker) Send(task *structs.Task) (err error) {
+	w.databaseName = task.DBType
+	w.dbDriver, err = w.getDatabaseType()
 	if err != nil {
-		w.log.Errorf("-1 %v \n ", err)
+		w.log.Error(err)
 		return
 	}
-	w.log.Infof("Start Worker for %s\n", w.databaseName)
-	for message := range w.workRabbit.Msgs {
-		err := json.Unmarshal(message.Body, &task)
-		if err != nil {
-			w.log.Errorf("0 %v \n ", err)
-			continue
+	w.dumpChan <- task
+	return
+}
+
+func (w *worker) Stop() {
+	close(w.dumpChan)
+	w.workerWG.Done()
+}
+
+func (w *worker) proc() {
+	for {
+		task, ok := <-w.dumpChan
+		if !ok {
+			break
 		}
 		w.stat.SendStatMessage(3, task.UserID, task.DBID, task.TaskID, nil)
-		err = dbDriver.Dump(task)
+		err := w.dbDriver.Dump(task)
 		if err != nil {
 			w.stat.SendStatMessage(5, task.UserID, task.DBID, task.TaskID, err)
-			w.log.Errorf("1 %v \n ", err)
-			continue
+			w.log.Error(err)
+			return
 		}
 		w.stat.SendStatMessage(4, task.UserID, task.DBID, task.TaskID, nil)
 		w.stat.SendStatMessage(6, task.UserID, task.DBID, task.TaskID, nil)
-		err = dbDriver.Restore(task)
+		err = w.dbDriver.Restore(task)
 		if err != nil {
 			w.stat.SendStatMessage(8, task.UserID, task.DBID, task.TaskID, err)
-			w.log.Errorf("2 %v \n ", err)
-			continue
+			w.log.Error(err)
+			return
 		}
 		w.stat.SendStatMessage(7, task.UserID, task.DBID, task.TaskID, err)
-		message.Ack(false)
 	}
 }
 
