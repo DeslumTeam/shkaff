@@ -121,6 +121,8 @@ func (oper *Operator) processTask(rows *sqlx.Rows) {
 			oper.log.Error(err)
 			return
 		}
+		dateFolder := time.Now().Format("2006-01-02_15_03")
+		task.DumpFolder = fmt.Sprintf("%s/%s", task.DumpFolder, dateFolder)
 		oper.tasksChan <- task
 	}
 }

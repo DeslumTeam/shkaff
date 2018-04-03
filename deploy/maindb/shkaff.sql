@@ -115,9 +115,9 @@ INSERT INTO shkaff.db_settings (
 VALUES (
     1,
     1,
-    27017,
-    'shkaff',
-    'shkaff',
+    27019,
+    '',
+    '',
     'TestAdmin'
 );
 
@@ -136,5 +136,5 @@ VALUES (
     '{3,4,5}',
     '{1,2,3,4,5,6,7}',
     21,
-    45
+    36
 );

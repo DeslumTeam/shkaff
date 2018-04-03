@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
@@ -84,9 +84,9 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 		cmdLine = append(cmdLine, auth)
 	}
 
-	if mp.parallelCollectionsNum > 4 {
-		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
-	}
+	// if mp.parallelCollectionsNum > 4 {
+	cmdLine = append(cmdLine, fmt.Sprintf("%s=1", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
+	// }
 
 	if mp.ipv6 {
 		cmdLine = append(cmdLine, consts.MONGO_IPV6_KEY)
@@ -105,20 +105,29 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 }
 
 func (mp *MongoParams) Dump(task *structs.Task) (err error) {
-	var stderr bytes.Buffer
 	mp.setDBSettings(task)
+	log.Println(mp.ParamsToDumpString())
 	cmd := exec.Command("sh", "-c", mp.ParamsToDumpString())
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
 		return err
 	}
-	dumpResult := stderr.String()
-	log.Println(dumpResult)
-	reResult := MONGO_SUCESS_DUMP.FindString(dumpResult)
-	if reResult != "" {
-		return
+	err = cmd.Start()
+	if err != nil {
+		return err
 	}
-	return errors.New("Dump: " + dumpResult)
+	scanner := bufio.NewScanner(stderr)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		dumpResult := scanner.Text()
+		log.Println(dumpResult)
+		reResult := MONGO_SUCESS_DUMP.FindString(dumpResult)
+		if reResult != "" {
+			return
+		}
+	}
+	cmd.Wait()
+	return
 }
 func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	var cmdLine []string
@@ -155,26 +164,35 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 		cmdLine = append(cmdLine, restorePath)
 	}
 
-	cmdLine = append(cmdLine, "--drop -v")
+	cmdLine = append(cmdLine, "--drop -v --batchSize=10 --numParallelCollections=1 --numInsertionWorkersPerCollection=1")
 	commandString = strings.Join(cmdLine, " ")
 	return
 }
 
 func (mp *MongoParams) Restore(task *structs.Task) (err error) {
-	var stderr bytes.Buffer
 	mp.setDBSettings(task)
+	log.Println(mp.ParamsToRestoreString())
 	cmd := exec.Command("sh", "-c", mp.ParamsToRestoreString())
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
 		return err
 	}
-	restoreResult := stderr.String()
-	log.Println(restoreResult)
-	for _, restoreErrorPattern := range RESTORE_ERRORS {
-		reResult := restoreErrorPattern.FindString(restoreResult)
-		if reResult != "" {
-			return errors.New("Restore: " + strings.TrimSpace(restoreResult))
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	scanner := bufio.NewScanner(stderr)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		restoreResult := scanner.Text()
+		log.Println(restoreResult)
+		for _, restoreErrorPattern := range RESTORE_ERRORS {
+			reResult := restoreErrorPattern.FindString(restoreResult)
+			if reResult != "" {
+				return errors.New("ErrRestore: " + strings.TrimSpace(restoreResult))
+			}
 		}
 	}
+	cmd.Wait()
 	return
 }
