@@ -2,25 +2,15 @@ package mongodb
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/DeslumTeam/shkaff/internal/consts"
 	"github.com/DeslumTeam/shkaff/internal/databases"
 	"github.com/DeslumTeam/shkaff/internal/options"
 	"github.com/DeslumTeam/shkaff/internal/structs"
-)
-
-var (
-	MONGO_SUCESS_DUMP = regexp.MustCompile(`\tdone\ dumping`)
-	RESTORE_ERRORS    = []*regexp.Regexp{
-		regexp.MustCompile(`exit\\sstatus\\s1`),
-		regexp.MustCompile(`skipping...`),
-		regexp.MustCompile(`server\\sreturned\\serror\\son\\sSASL\\sauthentication\\sstep\\:\\sAuthentication\\sfailed`)}
 )
 
 type MongoParams struct {
@@ -84,9 +74,9 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 		cmdLine = append(cmdLine, auth)
 	}
 
-	// if mp.parallelCollectionsNum > 4 {
-	cmdLine = append(cmdLine, fmt.Sprintf("%s=1", consts.MONGO_PARALLEL_KEY, mp.parallelCollectionsNum))
-	// }
+	if mp.parallelCollectionsNum > 4 {
+		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", mp.parallelCollectionsNum))
+	}
 
 	if mp.ipv6 {
 		cmdLine = append(cmdLine, consts.MONGO_IPV6_KEY)
@@ -121,12 +111,8 @@ func (mp *MongoParams) Dump(task *structs.Task) (err error) {
 	for scanner.Scan() {
 		dumpResult := scanner.Text()
 		log.Println(dumpResult)
-		reResult := MONGO_SUCESS_DUMP.FindString(dumpResult)
-		if reResult != "" {
-			return
-		}
 	}
-	cmd.Wait()
+	err = cmd.Wait()
 	return
 }
 func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
@@ -164,7 +150,7 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 		cmdLine = append(cmdLine, restorePath)
 	}
 
-	cmdLine = append(cmdLine, "--drop -v --batchSize=10 --numParallelCollections=1 --numInsertionWorkersPerCollection=1")
+	cmdLine = append(cmdLine, "--drop -v")
 	commandString = strings.Join(cmdLine, " ")
 	return
 }
@@ -186,13 +172,7 @@ func (mp *MongoParams) Restore(task *structs.Task) (err error) {
 	for scanner.Scan() {
 		restoreResult := scanner.Text()
 		log.Println(restoreResult)
-		for _, restoreErrorPattern := range RESTORE_ERRORS {
-			reResult := restoreErrorPattern.FindString(restoreResult)
-			if reResult != "" {
-				return errors.New("ErrRestore: " + strings.TrimSpace(restoreResult))
-			}
-		}
 	}
-	cmd.Wait()
+	err = cmd.Wait()
 	return
 }

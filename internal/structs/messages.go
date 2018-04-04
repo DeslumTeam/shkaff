@@ -37,7 +37,7 @@ type Task struct {
 	DBID           int    `json:"db_id" db:"db_id"`
 	UserID         int    `json:"user_id" db:"user_id"`
 	Databases      string `json:"-" db:"databases"`
-	DBType         string `json:"-" db:"db_type"`
+	DBType         string `json:"db_type" db:"db_type"`
 	Verb           int    `json:"verb" db:"verb"`
 	ThreadCount    int    `json:"thread_count" db:"thread_count"`
 	Gzip           bool   `json:"gzip" db:"gzip"`

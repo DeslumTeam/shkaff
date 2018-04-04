@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/DeslumTeam/shkaff/apps/statsender"
 	"github.com/DeslumTeam/shkaff/drivers/mongodb"
@@ -41,7 +42,8 @@ func InitWorker() (ws *workersStarter) {
 
 func (ws *workersStarter) Run() {
 	var task *structs.Task
-	ws.log.Infof("Run WorkersManager")
+	ws.workRabbit.InitConnection("mongodb")
+	ws.log.Info("Start WorkersManager")
 	for message := range ws.workRabbit.Msgs {
 		err := json.Unmarshal(message.Body, &task)
 		if err != nil {
@@ -60,6 +62,7 @@ func (ws *workersStarter) Run() {
 			ws.log.Error(err)
 			continue
 		}
+		message.Ack(true)
 	}
 }
 
@@ -70,10 +73,10 @@ func (ws *workersStarter) Stop() {
 
 func (w *worker) Run() {
 	w.stat = statsender.Run()
-	w.dumpChan = make(chan *structs.Task)
+	w.dumpChan = make(chan *structs.Task, 1)
+	w.log = logger.GetLogs("Worker")
 	w.workerWG.Add(1)
 	go w.proc()
-	w.workerWG.Wait()
 }
 
 func (w *worker) Send(task *structs.Task) (err error) {
@@ -103,7 +106,7 @@ func (w *worker) proc() {
 		if err != nil {
 			w.stat.SendStatMessage(5, task.UserID, task.DBID, task.TaskID, err)
 			w.log.Error(err)
-			return
+			continue
 		}
 		w.stat.SendStatMessage(4, task.UserID, task.DBID, task.TaskID, nil)
 		w.stat.SendStatMessage(6, task.UserID, task.DBID, task.TaskID, nil)
@@ -111,9 +114,10 @@ func (w *worker) proc() {
 		if err != nil {
 			w.stat.SendStatMessage(8, task.UserID, task.DBID, task.TaskID, err)
 			w.log.Error(err)
-			return
+			continue
 		}
 		w.stat.SendStatMessage(7, task.UserID, task.DBID, task.TaskID, err)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 

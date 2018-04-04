@@ -123,8 +123,8 @@ func (o *Operator) processTask(rows *sqlx.Rows) {
 			o.log.Error(err)
 			return
 		}
-		dateFolder := time.Now().Format("2006-01-02")
-		task.DumpFolder = fmt.Sprintf("%s/%s", task.DumpFolder, dateFolder)
+		dateFolder := time.Now().Format("2006-01-02 15:03")
+		task.DumpFolder = fmt.Sprintf("'%s/%s'", task.DumpFolder, dateFolder)
 		o.tasksChan <- task
 	}
 }
