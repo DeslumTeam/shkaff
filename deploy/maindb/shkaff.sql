@@ -116,8 +116,8 @@ VALUES (
     1,
     1,
     27019,
-    '',
-    '',
+    'shkaff',
+    'shkaff',
     'TestAdmin'
 );
 
