@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" class="app">
+<head>
+  <meta charset="utf-8" />
+  <title>Shkaff</title>
+  <meta name="description" content="app, web app, responsive, admin dashboard, admin, flat, flat ui, ui kit, off screen nav" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" /> 
+  <link rel="stylesheet" href="../css/bootstrap.css" type="text/css" />
+  <link rel="stylesheet" href="../css/animate.css" type="text/css" />
+  <link rel="stylesheet" href="../css/font-awesome.min.css" type="text/css" />
+  <link rel="stylesheet" href="../css/font.css" type="text/css" />
+  <link rel="stylesheet" href="../css/app.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../js/ie/html5shiv.js"></script>
+    <script src="../js/ie/respond.min.js"></script>
+    <script src="../js/ie/excanvas.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <section class="vbox">
+    <header class="bg-dark dk header navbar navbar-fixed-top-xs">
+      <div class="navbar-header aside-md">
+        <a class="btn btn-link visible-xs" data-toggle="class:nav-off-screen,open" data-target="#nav,html">
+          <i class="fa fa-bars"></i>
+        </a>
+        <a href="#" class="navbar-brand" data-toggle="fullscreen"><img src="../img/logo.png" class="m-r-sm">Shkaff</a>
+      </div>      
+    </header>
+    <section>
+      <section class="hbox stretch">
+        <!-- .aside -->
+        <aside class="bg-dark lter aside-md hidden-print" id="nav">          
+          <section class="vbox">
+            <section class="w-f scrollable">
+              <div class="slim-scroll" data-height="auto" data-disable-fade-out="true" data-distance="0" data-size="5px" data-color="#333333">
+                
+                <!-- nav -->
+                <nav class="nav-primary hidden-xs">
+                  <ul class="nav">
+                    <li  class="active">
+                      <a href="index.html"   class="active">
+                        <i class="fa fa-dashboard icon">
+                          <b class="bg-danger"></b>
+                        </i>
+                        <span>Dashboard</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+                <!-- / nav -->
+              </div>
+            </section>
+          </section>
+        </aside>
+        <!-- /.aside -->
+        <section id="content">
+          <section class="vbox">          
+            <section class="scrollable padder">
+              <ul class="breadcrumb no-border no-radius b-b b-light pull-in">
+                <li><a href="index.html"><i class="fa fa-home"></i> Home</a></li>
+                <li class="active">Dashboard</li>
+              </ul>
+              <div class="m-b-md">
+                <h3 class="m-b-none">Tasks</h3>
+              </div>
+              <section class="panel panel-default">
+                <div class="row m-l-none m-r-none bg-light lter">
+                  <div class="col-sm-6 col-md-3 padder-v b-r b-light">
+                    <span class="fa-stack fa-2x pull-left m-r-sm">
+                      <i class="fa fa-circle fa-stack-2x text-info"></i>
+                      <i class="fa fa-linux fa-stack-1x text-white"></i>
+                      
+                    </span>
+                    <div>
+                      <span class="h3 block m-t-xs"><strong>0</strong></span>
+                      <small class="text-muted text-uc">Count</small>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 col-md-3 padder-v b-r b-light lt">
+                    <span class="fa-stack fa-2x pull-left m-r-sm">
+                      <i class="fa fa-circle fa-stack-2x text-warning"></i>
+                      <i class="fa fa-play fa-stack-1x text-white"></i>
+                      <span class="easypiechart pos-abt" data-percent="100" data-line-width="4" data-track-Color="#fff" data-scale-Color="false" data-size="50"></span>
+                    </span>
+                    <div>
+                      <span class="h3 block m-t-xs"><strong>0</strong></span>
+                      <small class="text-muted text-uc">Active</small>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 col-md-3 padder-v b-r b-light">                     
+                    <span class="fa-stack fa-2x pull-left m-r-sm">
+                      <i class="fa fa-circle fa-stack-2x text-danger"></i>
+                      <i class="fa fa-stop fa-stack-1x text-white"></i>
+                      <span class="easypiechart pos-abt" data-percent="100" data-line-width="4" data-track-Color="#fff" data-scale-Color="false" data-size="50"></span>
+                    </span>
+                    <div>
+                      <span class="h3 block m-t-xs"><strong>0</strong></span>
+                      <small class="text-muted text-uc">Inactive</small>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 col-md-3 padder-v b-r b-light lt">
+                    <span class="fa-stack fa-2x pull-left m-r-sm">
+                      <i class="fa fa-circle fa-stack-2x icon-muted"></i>
+                      <i class="fa fa-tasks fa-stack-1x text-white"></i>
+                    </span>
+                    <div>
+                      <span class="h3 block m-t-xs"><strong>0</strong></span>
+                      <small class="text-muted text-uc">Storage</small>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div class="col-md-6">
+                <div class="m-b-md">
+                    <h3 class="m-b-none">Summary Statistic</h3>
+                </div>
+                <section>
+                  <div class="row">
+                    <div class="col-md-4">
+                        <section class="panel panel-default">
+                          <header class="panel-heading font-bold">Operator</header>
+                          <div class="panel-body">
+                            <div id="flot-pie-operator" style="height:240px"></div>
+                          </div>
+                        </section>
+                    </div>
+                    <div class="col-md-4">
+                        <section class="panel panel-default">
+                          <header class="panel-heading font-bold">Dump</header>
+                          <div class="panel-body">
+                            <div id="flot-pie-dump"  style="height:240px"></div>
+                          </div>
+                        </section>
+                    </div>
+                    <div class="col-md-4">
+                        <section class="panel panel-default">
+                          <header class="panel-heading font-bold">Restore</header>
+                          <div class="panel-body">
+                            <div id="flot-pie-restore" style="height:240px"></div>
+                          </div>
+                        </section>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="col-sm-6">
+                  <div class="m-b-md">
+                    <h3 class="m-b-none">Errors</h3>
+                  </div>
+                  <section class="panel panel-default">
+                    <table class="table table-striped m-b-none">
+                      <thead>
+                      </thead>
+                      <tbody>                      
+                      </tbody>
+                    </table>
+                  </section>
+                </div>
+              </div>
+            </section>
+          </section>
+        </section>
+      </section>
+    </section>
+  </section>
+  <script src="../js/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="../js/bootstrap.js"></script>
+  <!-- App -->
+  <script src="../js/app.js"></script>
+  <script src="../js/app.plugin.js"></script>
+  <script src="../js/slimscroll/jquery.slimscroll.min.js"></script>
+  <!-- Easy Pie Chart -->
+  <script src="../js/charts/easypiechart/jquery.easy-pie-chart.js"></script>
+
+  <script src="../js/charts/sparkline/jquery.sparkline.min.js"></script>
+  <!-- Flot -->
+  <script src="../js/charts/flot/jquery.flot.min.js"></script>
+  <script src="../js/charts/flot/jquery.flot.tooltip.min.js"></script>
+  <script src="../js/charts/flot/jquery.flot.resize.js"></script>
+  <script src="../js/charts/flot/jquery.flot.orderBars.js"></script>
+  <script src="../js/charts/flot/jquery.flot.pie.min.js"></script>
+  <script src="../js/charts/flot/jquery.flot.grow.js"></script>
+  <script src="../js/datatables/jquery.dataTables.min.js"></script>
+
+  <script src="../js/sortable/jquery.sortable.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>
