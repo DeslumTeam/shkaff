@@ -74,6 +74,12 @@ type APITasks struct {
 	ServerName string `db:"server_name"`
 }
 
+type APITasksCount struct {
+	Count    int `db:"count"`
+	Active   int `db:"active"`
+	Inactive int `db:"inactive"`
+}
+
 type APIDatabase struct {
 	DBID       int    `db:"db_id"`
 	UserID     int    `db:"user_id"`

@@ -53,7 +53,8 @@ func InitAPI() (api *API) {
 	}
 	//Statistic
 	{
-		v1.GET("/GetStat/:TaskID", api.getTaskStat)
+		v1.GET("/GetStat", api.getAllStat)
+		v1.GET("/GetTasksStatus", api.getTasksStatus)
 	}
 	return
 }

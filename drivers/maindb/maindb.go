@@ -67,9 +67,6 @@ func (ps *PSQL) GetTask(taskId int, isSimple bool) (task structs.APITask, err er
     WHERE task_id = $1 and is_delete = false`
 	}
 	err = ps.DB.Get(&task, requestString, taskId)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -95,19 +92,25 @@ func (ps *PSQL) GetTasks(isActive string) (taskArr []structs.APITasks, err error
 	return
 }
 
+func (ps *PSQL) GetTasksCount() (taskStat structs.APITasksCount, err error) {
+	requestString := `SELECT
+	Count(*) AS "count",
+	SUM(CASE WHEN t.is_active = true then 1 else 0 end) AS active,
+    SUM(CASE WHEN t.is_active = false then 1 else 0 end) AS inactive 
+	FROM shkaff.tasks t
+	INNER JOIN shkaff.db_settings db ON t.db_id = db.db_id
+	WHERE t.is_delete = false`
+	err = ps.DB.Get(&taskStat, requestString)
+	return
+}
+
 func (ps *PSQL) ChangeTaskStatus(taskID int, activeStatus bool) (err error) {
 	_, err = ps.DB.Exec(`UPDATE shkaff.tasks SET is_active = $1 WHERE task_id = $2`, activeStatus, taskID)
-	if err != nil {
-		return
-	}
 	return
 }
 
 func (ps *PSQL) GetLastTaskID() (id int, err error) {
 	err = ps.DB.Get(id, "SELECT Count(*) FROM shkaff.tasks WHERE is_delete = false")
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -129,9 +132,6 @@ func (ps *PSQL) GetTaskByName(taskName string) (task structs.APITask, err error)
 	FROM shkaff.tasks 
     WHERE task_name = $1 AND is_delete = false`
 	err = ps.DB.Get(&task, requestString, taskName)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -154,9 +154,6 @@ func (ps *PSQL) CreateTask(setStrings map[string]interface{}) (result sql.Result
 	dottedCols := strings.Join(dottedKeys, ",")
 	sqlString := fmt.Sprintf("INSERT INTO shkaff.tasks (%s) VALUES (%s)", cols, dottedCols)
 	result, err = ps.DB.NamedExec(sqlString, setStrings)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -187,18 +184,12 @@ func (ps *PSQL) UpdateTask(taskIDInt int, setStrings map[string]interface{}) (re
 
 func (ps *PSQL) DeleteTask(taskId int) (result sql.Result, err error) {
 	result, err = ps.DB.Exec("UPDATE shkaff.tasks SET is_delete = true WHERE task_id = $1", taskId)
-	if err != nil {
-		return
-	}
 	return
 }
 
 func (ps *PSQL) GetDatabase(databaseId int) (database structs.APIDatabase, err error) {
 	requestString := `SELECT * FROM shkaff.db_settings WHERE db_id = $1 and is_delete = false`
 	err = ps.DB.Get(&database, requestString, databaseId)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -248,9 +239,6 @@ func (ps *PSQL) UpdateDatabase(databaseIDInt int, setStrings map[string]interfac
 	cols := strings.Join(keys, ",")
 	sqlString := fmt.Sprintf("UPDATE shkaff.db_settings SET %s WHERE db_id = %d and is_delete = false", cols, databaseIDInt)
 	result, err = ps.DB.NamedExec(sqlString, setStrings)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -280,26 +268,17 @@ func (ps *PSQL) CreateDatabase(setStrings map[string]interface{}) (result sql.Re
 	sqlString := fmt.Sprintf("INSERT INTO shkaff.db_settings (%s) VALUES (%s)", cols, dottedCols)
 	ps.log.Info(sqlString)
 	result, err = ps.DB.NamedExec(sqlString, setStrings)
-	if err != nil {
-		return
-	}
 	return
 }
 
 func (ps *PSQL) DeleteDatabase(databaseID int) (result sql.Result, err error) {
 	result, err = ps.DB.Exec("UPDATE shkaff.db_settings SET is_delete = true WHERE db_id = $1", databaseID)
-	if err != nil {
-		return
-	}
 	return
 }
 
 func (ps *PSQL) GetUser(userId int) (user structs.APIUser, err error) {
 	requestString := `SELECT * FROM shkaff.users WHERE user_id = $1 AND is_delete = false`
 	err = ps.DB.Get(&user, requestString, userId)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -343,9 +322,6 @@ func (ps *PSQL) UpdateUser(userIDInt int, setStrings map[string]interface{}) (re
 	cols := strings.Join(keys, ",")
 	sqlString := fmt.Sprintf("UPDATE shkaff.users SET %s WHERE user_id = %d AND is_delete = false", cols, userIDInt)
 	result, err = ps.DB.NamedExec(sqlString, setStrings)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -359,16 +335,10 @@ func (ps *PSQL) CreateUser(setStrings map[string]interface{}) (result sql.Result
 	dottedCols := strings.Join(dottedKeys, ",")
 	sqlString := fmt.Sprintf("INSERT INTO shkaff.users (%s) VALUES (%s)", cols, dottedCols)
 	result, err = ps.DB.NamedExec(sqlString, setStrings)
-	if err != nil {
-		return
-	}
 	return
 }
 
 func (ps *PSQL) DeleteUser(userID int) (result sql.Result, err error) {
 	result, err = ps.DB.Exec("UPDATE shkaff.users SET is_delete = true WHERE user_id = $1", userID)
-	if err != nil {
-		return
-	}
 	return
 }

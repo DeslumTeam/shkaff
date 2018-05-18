@@ -127,23 +127,23 @@ func (api *API) deleteTask(c *gin.Context) {
 	return
 }
 
-func (api *API) getTaskStat(c *gin.Context) {
-	token := c.Query("token")
-	if token == "" {
-		c.JSON(http.StatusNotFound, gin.H{"Error": "Token is empty"})
-		return
-	}
-	isExist, err := api.psql.GetUserByToken(token)
-	if err != nil || !isExist {
-		c.JSON(http.StatusNotFound, gin.H{"Error": "User with this token not found"})
-		return
-	}
-	taskID := c.Param("TaskID")
-	_, err = strconv.Atoi(taskID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"Error": "Bad taskID"})
-		return
-	}
+func (api *API) getAllStat(c *gin.Context) {
+	// token := c.Query("token")
+	// if token == "" {
+	// 	c.JSON(http.StatusNotFound, gin.H{"Error": "Token is empty"})
+	// 	return
+	// }
+	// isExist, err := api.psql.GetUserByToken(token)
+	// if err != nil || !isExist {
+	// 	c.JSON(http.StatusNotFound, gin.H{"Error": "User with this token not found"})
+	// 	return
+	// }
+	// taskID := c.Param("TaskID")
+	// _, err = strconv.Atoi(taskID)
+	// if err != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{"Error": "Bad taskID"})
+	// 	return
+	// }
 	taskStat, err := api.report.StandartStatSelect()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
@@ -152,4 +152,13 @@ func (api *API) getTaskStat(c *gin.Context) {
 	c.JSON(http.StatusOK, taskStat)
 	return
 
+}
+
+func (api *API) getTasksStatus(c *gin.Context) {
+	tasksCount, err := api.psql.GetTasksCount()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tasksCount)
 }

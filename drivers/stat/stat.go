@@ -3,6 +3,7 @@ package stat
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,12 +26,17 @@ const (
 		:NewRestore, :SuccessRestore, :FailRestore, :ErrorRestore, :CreateDate)`
 
 	SELECT_REQUEST = `
-	SELECT UserId, DbID, TaskId, sum(NewOperator) as NewOperator, 
-	 sum(SuccessOperator) as SuccessOperator, sum(FailOperator) as FailOperator,
-	 sum(NewDump) as NewDump, sum(SuccessDump) as SuccessDump, sum(FailDump) as FailDump,
-	 sum(NewRestore) as NewRestore, sum(SuccessRestore) as SuccessRestore,
-	 sum(FailRestore) as FailRestore  
-	FROM shkaff_stat GROUP BY UserId, DbID, TaskId`
+	SELECT 
+		sum(NewOperator) as Operator_New, 
+	 	sum(SuccessOperator) as Operator_Success,
+		sum(FailOperator) as Operator_Fail,
+		sum(NewDump) as Dump_New,
+		sum(SuccessDump) as Dump_Success,
+		sum(FailDump) as Dump_Fail,
+		sum(NewRestore) as Restore_New,
+		sum(SuccessRestore) as Restore_Success,
+		sum(FailRestore) as Restore_Fail  
+	FROM shkaff_stat`
 )
 
 type StatDB struct {
@@ -106,7 +112,7 @@ func (s *StatDB) inserBulk() {
 }
 
 //TODO Refactoring Very Ugly
-func (s *StatDB) StandartStatSelect() (result map[string]interface{}, err error) {
+func (s *StatDB) StandartStatSelect() (result map[string]map[string]interface{}, err error) {
 	var row *sqlx.Row
 	var columns []string
 	row = s.DB.QueryRowx(SELECT_REQUEST)
@@ -123,10 +129,19 @@ func (s *StatDB) StandartStatSelect() (result map[string]interface{}, err error)
 	if err != nil {
 		return
 	}
-	result = make(map[string]interface{})
+	result = make(map[string]map[string]interface{})
 	for i, colName := range columns {
 		val := resP[i].(*interface{})
-		result[colName] = *val
+		names := strings.Split(colName, "_")
+		if len(names) != 2 {
+			continue
+		}
+		service := names[0]
+		status := names[1]
+		if result[service] == nil {
+			result[service] = make(map[string]interface{})
+		}
+		result[service][status] = *val
 	}
 	return
 }

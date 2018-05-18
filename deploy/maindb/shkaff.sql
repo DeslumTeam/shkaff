@@ -109,15 +109,15 @@ INSERT INTO shkaff.db_settings (
     user_id,
     type_id,
     port,
-    db_user,
-    db_password,
+    -- db_user,
+    -- db_password,
     server_name)
 VALUES (
     1,
     1,
-    27019,
-    'shkaff',
-    'shkaff',
+    27017,
+    -- 'shkaff',
+    -- 'shkaff',
     'TestAdmin'
 );
 
@@ -135,6 +135,6 @@ VALUES (
     'FirstTask',
     '{3,4,5}',
     '{1,2,3,4,5,6,7}',
-    21,
-    22
+    23,
+    55
 );
