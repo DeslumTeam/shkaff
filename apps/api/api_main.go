@@ -2,6 +2,10 @@ package api
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/DeslumTeam/shkaff/drivers/maindb"
 	"github.com/DeslumTeam/shkaff/drivers/stat"
@@ -29,6 +33,24 @@ func InitAPI() (api *API) {
 		psql:   maindb.InitPSQL(),
 		log:    logger.GetLogs("API"),
 	}
+	gin.SetMode(gin.ReleaseMode)
+	api = &API{
+		cfg:    options.InitControlConfig(),
+		router: gin.Default(),
+		report: stat.InitStat(),
+		psql:   maindb.InitPSQL(),
+		log:    logger.GetLogs("Dashboard"),
+	}
+	currDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	api.router.LoadHTMLGlob(path.Join(currDir, "static", "html", "*"))
+	api.router.Static("css", path.Join(currDir, "static", "css"))
+	api.router.Static("js", path.Join(currDir, "static", "js"))
+	api.router.Static("fonts", path.Join(currDir, "static", "fonts"))
+	api.router.Static("img", path.Join(currDir, "static", "img"))
+
 	v1 := api.router.Group("/api/v1")
 	//CRUD Operations with Users
 	{
@@ -55,6 +77,11 @@ func InitAPI() (api *API) {
 	{
 		v1.GET("/GetStat", api.getAllStat)
 		v1.GET("/GetTasksStatus", api.getTasksStatus)
+	}
+	// UI
+	page := api.router.Group("/")
+	{
+		page.GET("/", api.dashboard)
 	}
 	return
 }

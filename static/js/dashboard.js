@@ -1,80 +1,105 @@
+function FillTaskStat(){
+    $.ajax("/api/v1/GetTasksStatus", {
+        success: function(data) {
+            $(".h3 > strong")[0].innerText = data.Count; 
+            $(".h3 > strong")[1].innerText = data.Active; 
+            $(".h3 > strong")[2].innerText = data.Inactive;
+            $(".h3 > strong")[3].innerText = 0;
+        },
+        error: function() {
+            for (let i = 0; i < 3; i++) 3       
+                $(".h3 > strong")[i].innerText = 0; 
+        }
+     });
+}
+
+
+
 function FillTasks(){
-    var da1 = [],
-    series = 3;
-    chart_names = ['New', 'Success', 'Fail'];
-    for (var i = 0; i < series; i++) {
-    da1[i] = {
-        label: chart_names[i],
-        data: Math.floor(Math.random() * 100) + 1
-    }
-    }
-    var colors = ["#039808","#EAF208","#EB1111"]
-    $("#flot-pie-operator").length && $.plot($("#flot-pie-operator"), da1, {
-    series: {
-        pie: {
-        innerRadius: 0.5,
-        show: true
+    $.ajax("/api/v1/GetStat", {
+        success: function(data) {
+            var colors = ["#EB1111","#039808","#EAF208"]
+            var oper = []
+            var dump = []
+            var restore = []
+            series = 3;
+            Object.keys(data.Operator).forEach(function(key, i ){
+                oper[i] = {
+                    label: key,
+                    data: data.Operator[key]
+                }
+            });
+            Object.keys(data.Dump).forEach(function(key, i ){
+                dump[i] = {
+                    label: key,
+                    data: data.Dump[key]
+                }
+            });
+            Object.keys(data.Restore).forEach(function(key, i ){
+                restore[i] = {
+                    label: key,
+                    data: data.Restore[key]
+                }
+            });
+            $("#flot-pie-operator").length && $.plot($("#flot-pie-operator"), oper, {
+                series: {
+                    pie: {
+                    innerRadius: 0.5,
+                    show: true
+                    }
+                },
+                colors: colors,
+                grid: {
+                    hoverable: true,
+                    clickable: false
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s: %p.0%"
+                }
+            });
+            $("#flot-pie-dump").length && $.plot($("#flot-pie-dump"), dump, {
+                series: {
+                    pie: {
+                    innerRadius: 0.5,
+                    show: true
+                    }
+                },
+                colors: colors,
+                grid: {
+                    hoverable: true,
+                    clickable: false
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s: %p.0%"
+                }
+            });            
+            $("#flot-pie-restore").length && $.plot($("#flot-pie-restore"), restore, {
+                series: {
+                    pie: {
+                    innerRadius: 0.5,
+                    show: true
+                    }
+                },
+                colors: colors,
+                grid: {
+                    hoverable: true,
+                    clickable: false
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s: %p.0%"
+                }  
+            });
+        },
+        error: function() {
+            for (let i = 0; i < 3; i++) 3       
+                $(".h3 > strong")[i].innerText = 0; 
         }
-    },
-    colors: colors,
-    grid: {
-        hoverable: true,
-        clickable: false
-    },
-    tooltip: true,
-    tooltipOpts: {
-        content: "%s: %p.0%"
-    }
-    });
-
-    $("#flot-pie-dump").length && $.plot($("#flot-pie-dump"), da1, {
-    series: {
-        pie: {
-        innerRadius: 0.5,
-        show: true
-        }
-    },
-    colors: colors,
-    grid: {
-        hoverable: true,
-        clickable: false
-    },
-    tooltip: true,
-    tooltipOpts: {
-        content: "%s: %p.0%"
-    }
-    });
-
-    $("#flot-pie-restore").length && $.plot($("#flot-pie-restore"), da1, {
-    series: {
-        pie: {
-        innerRadius: 0.5,
-        show: true
-        }
-    },
-    colors: colors,
-    grid: {
-        hoverable: true,
-        clickable: false
-    },
-    tooltip: true,
-    tooltipOpts: {
-        content: "%s: %p.0%"
-    }  
     });
 }
 
-  function FillTaskStat(){
-    a = {"Count": Math.floor(Math.random() * 100) + 1,
-         "Active":Math.floor(Math.random() * 100) + 1,
-         "Inactive":Math.floor(Math.random() * 100) + 1,
-         "Storage":Math.floor(Math.random() * 100) + 1 +"Gb"
-        }
-    $(".h3 > strong")[0].innerText = a.Count; 
-    $(".h3 > strong")[1].innerText = a.Active; 
-    $(".h3 > strong")[2].innerText = a.Inactive;
-    $(".h3 > strong")[3].innerText = a.Storage; 
-  }
   
 
 function FillTable(){
