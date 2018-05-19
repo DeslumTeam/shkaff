@@ -27,14 +27,11 @@ const (
 		:NewRestore, :SuccessRestore, :FailRestore, :Error, :CreateDate)`
 
 	SELECT_REQUEST = `
-	SELECT 
-		sum(NewOperator) as Operator_New, 
+	SELECT
 	 	sum(SuccessOperator) as Operator_Success,
 		sum(FailOperator) as Operator_Fail,
-		sum(NewDump) as Dump_New,
 		sum(SuccessDump) as Dump_Success,
 		sum(FailDump) as Dump_Fail,
-		sum(NewRestore) as Restore_New,
 		sum(SuccessRestore) as Restore_Success,
 		sum(FailRestore) as Restore_Fail  
 	FROM shkaff_stat`
@@ -45,7 +42,7 @@ const (
 		Service as service, 
 		Count() as count 
 	FROM shkaff_stat 
-	WHERE FailOperator<>0 
+	WHERE FailRestore<>0 or FailOperator<>0 or FailDump<>0 
 	GROUP BY Error, Service`
 )
 

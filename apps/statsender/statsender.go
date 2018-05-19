@@ -35,7 +35,7 @@ func (statSender *StatSender) SendStatMessage(action structs.Action, userID, dbi
 	statMessage.UserID = uint16(userID)
 	statMessage.DbID = uint16(dbid)
 	statMessage.TaskID = uint16(taskID)
-	statMessage.CreateDate = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	statMessage.CreateDate = time.Now()
 	switch action {
 	case 0:
 		statMessage.NewOperator = 1

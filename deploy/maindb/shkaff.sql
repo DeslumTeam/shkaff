@@ -109,15 +109,15 @@ INSERT INTO shkaff.db_settings (
     user_id,
     type_id,
     port,
-    db_user,
-    db_password,
+    -- db_user,
+    -- db_password,
     server_name)
 VALUES (
     1,
     1,
-    27019,
-    'shkaff',
-    'shkaff',
+    27017,
+    -- 'shkaff',
+    -- 'shkaff',
     'TestAdmin'
 );
 
@@ -152,5 +152,8 @@ $$ LANGUAGE plpgsql;
 
 
 SELECT insert_task('First', 3, 3);
-SELECT insert_task('Second', 3, 5);
-SELECT insert_task('Third', 3, 9);
+SELECT insert_task('Second', 3, 3);
+SELECT insert_task('Third', 3, 3);
+SELECT insert_task('Fouth', 3, 3);
+SELECT insert_task('Fith', 3, 3);
+SELECT insert_task('Sixth', 3, 3);

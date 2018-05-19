@@ -19,12 +19,12 @@ function labelFormatter(label, series) {
 function FillTasks(){
     $.ajax("/api/v1/GetStat", {
         success: function(data) {
-            var colors = ["#EB1111","#e2c90b","#039808"]
+            var colors = ["#EB1111","#039808"]
             var oper = []
             var dump = []
             var restore = []
             var empty = [{"label":"NoData", "data": 1}]
-            series = 3;
+            series = 2;
             var pieSettings = {
                 series: {
                     pie: {
@@ -102,7 +102,7 @@ function FillTable(){
                 searching: false,
                 paging: false,
                 bInfo: false,
-                scrollY: 260,
+                scrollY: 275,
             });
         }
     });

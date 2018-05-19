@@ -72,7 +72,6 @@ func (o *Operator) taskSender() {
 			var err error
 			err, messages = mongodb.GetMessages(task)
 			if err != nil {
-				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
 				continue
 			}
 		default:
@@ -82,6 +81,7 @@ func (o *Operator) taskSender() {
 			continue
 		}
 		for _, msg := range messages {
+			o.stat.SendStatMessage(0, task.UserID, task.DBID, task.TaskID, nil)
 			body, err := json.Marshal(msg)
 			if err != nil {
 				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
@@ -133,7 +133,6 @@ func (o *Operator) processTask(rows *sqlx.Rows) {
 		}
 		dateFolder := time.Now().Format("2006-01-02 15:03")
 		task.DumpFolder = fmt.Sprintf("'%s/%s'", task.DumpFolder, dateFolder)
-		o.stat.SendStatMessage(0, task.UserID, task.DBID, task.TaskID, nil)
 		o.tasksChan <- task
 	}
 }
