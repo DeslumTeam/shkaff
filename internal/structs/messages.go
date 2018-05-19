@@ -110,17 +110,16 @@ type StatMessage struct {
 	UserID          uint16    `db:"UserId" json:"uid"`
 	DbID            uint16    `db:"DbID" json:"did"`
 	TaskID          uint16    `db:"TaskId" json:"tid"`
+	Service         string    `db:"TaskId" json:"srv"`
 	NewOperator     uint32    `db:"NewOperator" json:"no"`
 	SuccessOperator uint32    `db:"SuccessOperator" json:"so"`
 	FailOperator    uint32    `db:"FailOperator" json:"fo"`
-	ErrorOperator   string    `db:"ErrorOperator" json:"eo"`
 	NewDump         uint32    `db:"NewDump" json:"nd"`
 	SuccessDump     uint32    `db:"SuccessDump" json:"sd"`
 	FailDump        uint32    `db:"FailDump" json:"fd"`
-	ErrorDump       string    `db:"ErrorDump" json:"ed"`
 	NewRestore      uint32    `db:"NewRestore" json:"nr"`
 	SuccessRestore  uint32    `db:"SuccessRestore" json:"sr"`
 	FailRestore     uint32    `db:"FailRestore" json:"fr"`
-	ErrorRestore    string    `db:"ErrorRestore" json:"er"`
+	Error           string    `db:"Error" json:"er"`
 	CreateDate      time.Time `db:"CreateDate" json:"cd"`
 }

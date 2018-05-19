@@ -42,22 +42,25 @@ func (statSender *StatSender) SendStatMessage(action structs.Action, userID, dbi
 	case 1:
 		statMessage.SuccessOperator = 1
 	case 2:
+		statMessage.Service = "Operator"
 		statMessage.FailOperator = 1
-		statMessage.ErrorOperator = err.Error()
+		statMessage.Error = err.Error()
 	case 3:
 		statMessage.NewDump = 1
 	case 4:
 		statMessage.SuccessDump = 1
 	case 5:
+		statMessage.Service = "Dump"
 		statMessage.FailDump = 1
-		statMessage.ErrorDump = err.Error()
+		statMessage.Error = err.Error()
 	case 6:
 		statMessage.NewRestore = 1
 	case 7:
 		statMessage.SuccessRestore = 1
 	case 8:
+		statMessage.Service = "Restore"
 		statMessage.FailRestore = 1
-		statMessage.ErrorRestore = err.Error()
+		statMessage.Error = err.Error()
 	}
 	statSender.sChan <- statMessage
 }

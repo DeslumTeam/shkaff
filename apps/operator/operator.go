@@ -69,24 +69,33 @@ func (o *Operator) taskSender() {
 
 		switch dbType := task.DBType; dbType {
 		case "mongodb":
-			messages = mongodb.GetMessages(task)
+			var err error
+			err, messages = mongodb.GetMessages(task)
+			if err != nil {
+				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
+				continue
+			}
 		default:
-			err := fmt.Sprintf("Driver for Database %s not found", task.DBType)
+			err := fmt.Errorf("Driver for Database %s not found", task.DBType)
+			o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
 			o.log.Info(err)
 			continue
 		}
 		for _, msg := range messages {
 			body, err := json.Marshal(msg)
 			if err != nil {
+				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
 				o.log.Error(err)
 				continue
 			}
 
 			err = o.rabbit.Publish(body)
 			if err != nil {
+				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
 				o.log.Error(err)
 				continue
 			}
+			o.stat.SendStatMessage(1, task.UserID, task.DBID, task.TaskID, nil)
 		}
 	}
 }
@@ -106,9 +115,8 @@ func (o *Operator) aggregator() {
 			rows, err := o.postgres.DB.Queryx(request)
 			if err != nil {
 				o.log.Error(err)
-			} else {
-				go o.processTask(rows)
 			}
+			go o.processTask(rows)
 			timeout := time.Duration(60 - (time.Now().Unix() - tsNow.Unix()))
 			psqlUpdateTime = time.NewTimer(timeout * time.Second)
 		}
@@ -125,6 +133,7 @@ func (o *Operator) processTask(rows *sqlx.Rows) {
 		}
 		dateFolder := time.Now().Format("2006-01-02 15:03")
 		task.DumpFolder = fmt.Sprintf("'%s/%s'", task.DumpFolder, dateFolder)
+		o.stat.SendStatMessage(0, task.UserID, task.DBID, task.TaskID, nil)
 		o.tasksChan <- task
 	}
 }

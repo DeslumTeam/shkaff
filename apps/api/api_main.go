@@ -77,6 +77,7 @@ func InitAPI() (api *API) {
 	{
 		v1.GET("/GetStat", api.getAllStat)
 		v1.GET("/GetTasksStatus", api.getTasksStatus)
+		v1.GET("/GetErrors", api.getErrors)
 	}
 	// UI
 	page := api.router.Group("/")

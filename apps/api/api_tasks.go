@@ -162,3 +162,13 @@ func (api *API) getTasksStatus(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, tasksCount)
 }
+
+func (api *API) getErrors(c *gin.Context) {
+	result, err := api.report.SelectDailyErrors()
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+
+}

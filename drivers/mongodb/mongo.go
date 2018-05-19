@@ -18,7 +18,7 @@ type mongoCliStruct struct {
 	log      *logging.Logger
 }
 
-func (m *mongoCliStruct) emptyDB() {
+func (m *mongoCliStruct) emptyDB() (err error) {
 	url := fmt.Sprintf("%s:%d", m.task.Host, m.task.Port)
 
 	session, err := mgo.DialWithTimeout(url, 5*time.Second)
@@ -48,9 +48,9 @@ func (m *mongoCliStruct) emptyDB() {
 	return
 }
 
-func (m *mongoCliStruct) fillDB() {
+func (m *mongoCliStruct) fillDB() (err error) {
 	databases := make(map[string][]string)
-	err := json.Unmarshal([]byte(m.task.Databases), &databases)
+	err = json.Unmarshal([]byte(m.task.Databases), &databases)
 	if err != nil {
 		m.log.Error("Error unmarshal databases", databases, err)
 		return
@@ -62,15 +62,15 @@ func (m *mongoCliStruct) fillDB() {
 	return
 }
 
-func GetMessages(task structs.Task) (caches []structs.Task) {
+func GetMessages(task structs.Task) (err error, caches []structs.Task) {
 	var mongo = new(mongoCliStruct)
 	mongo.task = task
 	mongo.log = logger.GetLogs("Mongo")
 	if task.Databases == "{}" {
-		mongo.emptyDB()
+		err = mongo.emptyDB()
 	} else {
-		mongo.fillDB()
+		err = mongo.fillDB()
 	}
-	return mongo.messages
+	return err, mongo.messages
 
 }

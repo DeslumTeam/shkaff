@@ -3,6 +3,7 @@ package stat
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,12 +19,12 @@ const (
 	URI_TEMPLATE   = "tcp://%s:%d?debug=False"
 	CHECKOUT_TIME  = 15
 	INSERT_REQUEST = `
-	INSERT INTO shkaff_stat (UserId, DbID, TaskId, NewOperator,SuccessOperator,
-		FailOperator, ErrorOperator, NewDump, SuccessDump, FailDump, ErrorDump,
-		NewRestore, SuccessRestore, FailRestore, ErrorRestore, CreateDate)
-	VALUES (:UserId, :DbID, :TaskId, :NewOperator, :SuccessOperator,
-		:FailOperator, :ErrorOperator, :NewDump, :SuccessDump, :FailDump, :ErrorDump,
-		:NewRestore, :SuccessRestore, :FailRestore, :ErrorRestore, :CreateDate)`
+	INSERT INTO shkaff_stat (UserId, DbID, TaskId, Service, NewOperator,SuccessOperator,
+		FailOperator, NewDump, SuccessDump, FailDump,
+		NewRestore, SuccessRestore, FailRestore, Error, CreateDate)
+	VALUES (:UserId, :DbID, :TaskId,:Service, :NewOperator, :SuccessOperator,
+		:FailOperator, :NewDump, :SuccessDump, :FailDump,
+		:NewRestore, :SuccessRestore, :FailRestore, :Error, :CreateDate)`
 
 	SELECT_REQUEST = `
 	SELECT 
@@ -37,7 +38,22 @@ const (
 		sum(SuccessRestore) as Restore_Success,
 		sum(FailRestore) as Restore_Fail  
 	FROM shkaff_stat`
+
+	SELECT_ERRORS_REQUEST = `
+	SELECT 
+		Error as error,
+		Service as service, 
+		Count() as count 
+	FROM shkaff_stat 
+	WHERE FailOperator<>0 
+	GROUP BY Error, Service`
 )
+
+type Errors struct {
+	Error   string `db:"error"`
+	Service string `db:"service"`
+	Count   int    `db:"count"`
+}
 
 type StatDB struct {
 	mutex           sync.Mutex
@@ -96,10 +112,9 @@ func (s *StatDB) inserBulk() {
 		log.Println(err)
 	}
 	for _, sm := range s.statMessageList {
-		_, err = stmt.Exec(sm.UserID, sm.DbID, sm.TaskID, sm.NewOperator, sm.SuccessOperator,
-			sm.FailOperator, sm.ErrorOperator, sm.NewDump, sm.SuccessDump, sm.FailDump,
-			sm.ErrorDump, sm.NewRestore, sm.SuccessRestore, sm.FailRestore,
-			sm.ErrorRestore, sm.CreateDate)
+		_, err = stmt.Exec(sm.UserID, sm.DbID, sm.TaskID, sm.Service, sm.NewOperator, sm.SuccessOperator,
+			sm.FailOperator, sm.NewDump, sm.SuccessDump, sm.FailDump, sm.NewRestore,
+			sm.SuccessRestore, sm.FailRestore, sm.Error, sm.CreateDate)
 		if err != nil {
 			log.Println(err)
 		}
@@ -148,4 +163,24 @@ func (s *StatDB) StandartStatSelect() (result map[string]map[string]interface{},
 
 func (s *StatDB) dropList() {
 	s.statMessageList = []structs.StatMessage{}
+}
+
+func (s *StatDB) SelectDailyErrors() (result [][]string, err error) {
+	var task Errors
+	rows, err := s.DB.Queryx(SELECT_ERRORS_REQUEST)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		err := rows.StructScan(&task)
+		if err != nil {
+			continue
+		}
+		var arr []string
+		arr = append(arr, task.Error)
+		arr = append(arr, task.Service)
+		arr = append(arr, strconv.Itoa(task.Count))
+		result = append(result, arr)
+	}
+	return
 }

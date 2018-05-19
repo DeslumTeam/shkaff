@@ -109,32 +109,48 @@ INSERT INTO shkaff.db_settings (
     user_id,
     type_id,
     port,
-    -- db_user,
-    -- db_password,
+    db_user,
+    db_password,
     server_name)
 VALUES (
     1,
     1,
-    27017,
-    -- 'shkaff',
-    -- 'shkaff',
+    27019,
+    'shkaff',
+    'shkaff',
     'TestAdmin'
 );
 
-INSERT INTO shkaff.tasks (
-    db_id,
-    is_active,
-    task_name,
-    months,
-    day_week,
-    hours,
-    minutes)
-VALUES (
-    1,
-    true,
-    'FirstTask',
-    '{3,4,5}',
-    '{1,2,3,4,5,6,7}',
-    23,
-    55
-);
+
+CREATE OR REPLACE FUNCTION insert_task(text, integer, integer) RETURNS void AS $$
+DECLARE
+	ts timestamp;
+    tname text = $1;
+	hours int = $2;
+	minutes int = $3;
+BEGIN
+    ts = localtimestamp + (hours * 60 + minutes) * interval '1 minutes';
+	INSERT INTO shkaff.tasks (
+		db_id,
+		is_active,
+		task_name,
+		months,
+		day_week,
+		hours,
+		minutes)
+	VALUES (
+		1,
+		true,
+		tname,
+		'{1,2,3,4,5,6,7,8,9,10,11,12}',
+		'{1,2,3,4,5,6,7}',
+		date_part('hour', ts),
+		date_part('minute', ts)
+	);
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT insert_task('First', 3, 3);
+SELECT insert_task('Second', 3, 5);
+SELECT insert_task('Third', 3, 9);

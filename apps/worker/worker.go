@@ -45,6 +45,7 @@ func (ws *workersStarter) Run() {
 	ws.workRabbit.InitConnection("mongodb")
 	ws.log.Info("Start WorkersManager")
 	for message := range ws.workRabbit.Msgs {
+
 		err := json.Unmarshal(message.Body, &task)
 		if err != nil {
 			ws.log.Error(err)
