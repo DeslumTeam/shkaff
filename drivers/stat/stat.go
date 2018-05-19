@@ -33,8 +33,9 @@ const (
 		sum(SuccessDump) as Dump_Success,
 		sum(FailDump) as Dump_Fail,
 		sum(SuccessRestore) as Restore_Success,
-		sum(FailRestore) as Restore_Fail  
-	FROM shkaff_stat`
+		sum(FailRestore) as Restore_Fail
+	FROM shkaff_stat
+	WHERE (CreateDate == toDate(now()))`
 
 	SELECT_ERRORS_REQUEST = `
 	SELECT 
@@ -42,7 +43,7 @@ const (
 		Service as service, 
 		Count() as count 
 	FROM shkaff_stat 
-	WHERE FailRestore<>0 or FailOperator<>0 or FailDump<>0 
+	WHERE (CreateDate == toDate(now())) AND (FailRestore<>0 or FailOperator<>0 or FailDump<>0)
 	GROUP BY Error, Service`
 )
 
@@ -164,6 +165,7 @@ func (s *StatDB) dropList() {
 
 func (s *StatDB) SelectDailyErrors() (result [][]string, err error) {
 	var task Errors
+
 	rows, err := s.DB.Queryx(SELECT_ERRORS_REQUEST)
 	if err != nil {
 		return
