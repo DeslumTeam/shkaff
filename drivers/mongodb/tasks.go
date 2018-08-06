@@ -17,7 +17,7 @@ var tests_tasks = []struct {
 		name: "0",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:       "mongorestore",
+				Host:       "localhost",
 				Port:       27017,
 				DBUser:     "shkaff",
 				DBPassword: "shkaff",
@@ -29,7 +29,7 @@ var tests_tasks = []struct {
 		name: "1",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:       "mongorestore",
+				Host:       "localhost",
 				Port:       27017,
 				DBUser:     "shkaff",
 				DBPassword: "shkaff",
@@ -42,7 +42,7 @@ var tests_tasks = []struct {
 		name: "2",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:        "mongorestore",
+				Host:        "localhost",
 				Port:        27017,
 				DBUser:      "shkaff",
 				DBPassword:  "shkaff",
@@ -55,7 +55,7 @@ var tests_tasks = []struct {
 		name: "3",
 		args: argsTaskCases{
 			task: &structs.Task{
-				Host:        "mongorestore",
+				Host:        "localhost",
 				Port:        27017,
 				DBUser:      "shkaff",
 				DBPassword:  "shkaff",

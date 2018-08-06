@@ -1,7 +1,0 @@
-FROM golang
-
-COPY . $GOPATH/src/github.com/DeslumTeam/shkaff
-
-WORKDIR $GOPATH/src/github.com/DeslumTeam/shkaff
-
-CMD apt-get update && apt-get install -y mongo-tools && sleep 20 && go build && ./shkaff& sleep 30 && go test ./... -v 

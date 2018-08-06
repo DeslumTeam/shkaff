@@ -11,8 +11,9 @@ go:
   - "1.9"
   - "1.10"
 before_install:
+  - cp deploy/config.json config.json
   - docker-compose -f docker-compose.yml up -d
   - go get github.com/tools/godep
   - godep restore
 script:
-- make all-tests
+- make integration-test
