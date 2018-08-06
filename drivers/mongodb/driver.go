@@ -75,7 +75,7 @@ func (mp *MongoParams) ParamsToDumpString() (commandString string) {
 	}
 
 	if mp.parallelCollectionsNum > 4 {
-		cmdLine = append(cmdLine, fmt.Sprintf("%s=%d", mp.parallelCollectionsNum))
+		cmdLine = append(cmdLine, fmt.Sprintf("-j=%d", mp.parallelCollectionsNum))
 	}
 
 	if mp.ipv6 {

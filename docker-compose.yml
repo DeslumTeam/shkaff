@@ -1,0 +1,96 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=test
+      - POSTGRES_DB=shkaff
+    volumes:
+      - ./deploy/maindb/shkaff.sql:/docker-entrypoint-initdb.d/shkaff.sql
+    networks: 
+      - shkaff_network
+
+  mongodb:
+    image: aashreys/mongo-auth:latest
+    environment:
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=shkaff
+      - MONGODB_ADMIN_PASS=shkaff
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./deploy/mongodb_test:/opt
+    networks: 
+      - shkaff_network
+
+  mongodb-restore:
+    image: aashreys/mongo-auth:latest
+    environment:
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=shkaff
+      - MONGODB_ADMIN_PASS=shkaff
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./deploy/mongodb_test:/opt
+    networks: 
+      - shkaff_network
+
+  rabbitmq:
+    image: "rabbitmq:latest"
+    environment:
+      - RABBITMQ_DEFAULT_USER=shkaff
+      - RABBITMQ_DEFAULT_PASS=shkaff
+      - RABBITMQ_DEFAULT_VHOST=shkaff_workers
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:    
+      - "./deploy/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+    networks: 
+      - shkaff_network
+
+
+  clickhouse-server:
+    image: "yandex/clickhouse-server:latest"
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9009:9009"
+    networks: 
+      - shkaff_network
+
+  clickhouse-client:
+    image: "yandex/clickhouse-client:latest"
+    entrypoint: /bin/bash
+    environment:
+      - HOUSE_HOST=ClickHouse-Server
+    volumes:
+      - ./deploy/clickhouse:/opt
+    networks: 
+      - shkaff_network
+    command: 
+      - "/opt/create_table.sh"
+
+  shkaff:
+    build:
+      context: .
+      dockerfile: DockerfileTest
+    restart: "no"
+    ports:
+    - "8080:8080"
+    depends_on: 
+    - postgres
+    - clickhouse-server
+    - rabbitmq
+    - mongodb
+    - mongodb-restore
+    networks: 
+    - shkaff_network
+
+networks: 
+  shkaff_network:
