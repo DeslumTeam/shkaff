@@ -50,26 +50,26 @@ func InitControlConfig() *ShkaffConfig {
 	if cc != nil {
 		return cc
 	}
-	cc = &ShkaffConfig{}
-	var file []byte
-	var err error
-	// dir, err := filepath.Abs(os.Args[0])
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+
+	cc = new(ShkaffConfig)
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("No caller information")
 	}
+
 	dir := path.Join(path.Dir(filename))
-	if file, err = ioutil.ReadFile(dir + "/../../config.json"); err != nil {
+	file, err := ioutil.ReadFile(dir + "/../../config.json")
+	if err != nil {
 		log.Fatalln(err)
 		return nil
 	}
-	if err := json.Unmarshal(file, &cc); err != nil {
+
+	err = json.Unmarshal(file, &cc)
+	if err != nil {
 		log.Fatalln(err)
 		return nil
 	}
+
 	cc.log = logger.GetLogs("Config")
 	cc.validate()
 	return cc
@@ -79,6 +79,7 @@ func (cc *ShkaffConfig) validate() {
 	if cc.SHKAFF_UI_HOST == "" {
 		log.Fatalf("Invalid Shkaff UI Host %s", cc.SHKAFF_UI_HOST)
 	}
+
 	if cc.SHKAFF_UI_PORT < 1025 || cc.SHKAFF_UI_PORT > 65535 {
 		log.Fatalf("Invalid Shkaff UI Port %d", cc.SHKAFF_UI_PORT)
 	}
@@ -87,17 +88,21 @@ func (cc *ShkaffConfig) validate() {
 		log.Printf(consts.INVALID_DATABASE_HOST, consts.DEFAULT_HOST)
 		cc.DATABASE_HOST = consts.DEFAULT_HOST
 	}
+
 	if cc.DATABASE_PORT < 1025 || cc.DATABASE_PORT > 65535 {
 		log.Printf(consts.INVALID_DATABASE_PORT, cc.DATABASE_PORT, consts.DEFAULT_DATABASE_PORT)
 		cc.DATABASE_PORT = consts.DEFAULT_DATABASE_PORT
 	}
+
 	if cc.DATABASE_DB == "" {
 		log.Printf(consts.INVALID_DATABASE_DB, consts.DEFAULT_DATABASE_DB)
 		cc.DATABASE_DB = consts.DEFAULT_DATABASE_DB
 	}
+
 	if cc.DATABASE_USER == "" {
 		log.Fatalln(consts.INVALID_DATABASE_USER)
 	}
+
 	if cc.DATABASE_PASS == "" {
 		log.Fatalln(consts.INVALID_DATABASE_PASSWORD)
 	}
@@ -106,13 +111,16 @@ func (cc *ShkaffConfig) validate() {
 		log.Printf(consts.INVALID_AMQP_HOST, consts.DEFAULT_HOST)
 		cc.RMQ_HOST = consts.DEFAULT_HOST
 	}
+
 	if cc.RMQ_PORT < 1025 || cc.RMQ_PORT > 65535 {
 		log.Printf(consts.INVALID_AMQP_PORT, cc.RMQ_PORT, consts.DEFAULT_AMQP_PORT)
 		cc.RMQ_PORT = consts.DEFAULT_AMQP_PORT
 	}
+
 	if cc.RMQ_USER == "" {
 		log.Fatalln(consts.INVALID_AMQP_USER)
 	}
+
 	if cc.RMQ_PASS == "" {
 		log.Fatalln(consts.INVALID_AMQP_PASSWORD)
 	}
@@ -121,6 +129,7 @@ func (cc *ShkaffConfig) validate() {
 		log.Printf(consts.INVALID_STATDB_HOST, consts.DEFAULT_HOST)
 		cc.STATBASE_HOST = consts.DEFAULT_HOST
 	}
+
 	if cc.STATBASE_PORT < 1025 || cc.STATBASE_PORT > 65535 {
 		log.Printf(consts.INVALID_STATDB_PORT, cc.STATBASE_PORT, consts.DEFAULT_STATDB_PORT)
 		cc.STATBASE_PORT = consts.DEFAULT_STATDB_PORT
@@ -130,14 +139,17 @@ func (cc *ShkaffConfig) validate() {
 		log.Printf(consts.INVALID_STATDB_HOST, consts.DEFAULT_HOST)
 		cc.STATBASE_HOST = consts.DEFAULT_HOST
 	}
+
 	if cc.STATBASE_PORT < 1025 || cc.STATBASE_PORT > 65535 {
 		log.Printf(consts.INVALID_STATDB_PORT, cc.STATBASE_PORT, consts.DEFAULT_STATDB_PORT)
 		cc.STATBASE_PORT = consts.DEFAULT_STATDB_PORT
 	}
+
 	if cc.MONGO_RESTORE_HOST == "" {
 		log.Printf(consts.INVALID_MONGO_RESTORE_HOST, consts.DEFAULT_HOST)
 		cc.MONGO_RESTORE_HOST = consts.DEFAULT_HOST
 	}
+
 	if cc.MONGO_RESTORE_PORT < 1025 || cc.MONGO_RESTORE_PORT > 65535 {
 		log.Printf(consts.INVALID_MONGO_RESTORE_PORT, cc.MONGO_RESTORE_PORT, consts.DEFAULT_MONGO_RESTORE_PORT)
 		cc.MONGO_RESTORE_PORT = consts.DEFAULT_STATDB_PORT
@@ -146,9 +158,11 @@ func (cc *ShkaffConfig) validate() {
 	if cc.REFRESH_DATABASE_SCAN == 0 {
 		cc.REFRESH_DATABASE_SCAN = consts.DEFAULT_REFRESH_DATABASE_SCAN
 	}
+
 	if len(cc.WORKERS) == 0 {
 		log.Fatalln("Count Workers should be greater 0")
 	}
+
 	for database, workersCount := range cc.WORKERS {
 		if workersCount > 0 {
 			switch database {
@@ -166,5 +180,6 @@ func (cc *ShkaffConfig) validate() {
 			delete(cc.WORKERS, database)
 		}
 	}
+
 	return
 }

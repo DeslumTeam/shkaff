@@ -23,14 +23,14 @@ type RMQ struct {
 
 func InitAMQPConsumer() (qp *RMQ) {
 	cfg := options.InitControlConfig()
-	qp = new(RMQ)
-	qp.uri = fmt.Sprintf(consts.RMQ_URI_TEMPLATE, cfg.RMQ_USER,
-		cfg.RMQ_PASS,
-		cfg.RMQ_HOST,
-		cfg.RMQ_PORT,
-		cfg.RMQ_VHOST)
-	qp.log = logger.GetLogs("RMQ Consumer")
-	return
+	return &RMQ{
+		uri: fmt.Sprintf(consts.RMQ_URI_TEMPLATE, cfg.RMQ_USER,
+			cfg.RMQ_PASS,
+			cfg.RMQ_HOST,
+			cfg.RMQ_PORT,
+			cfg.RMQ_VHOST),
+		log: logger.GetLogs("RMQ Consumer"),
+	}
 }
 
 func (qp *RMQ) InitConnection(queueName string) {
@@ -38,11 +38,13 @@ func (qp *RMQ) InitConnection(queueName string) {
 	if queueName == "" {
 		qp.log.Fatal("Consumer queue name empty")
 	}
+
 	for {
 		qp.Connect, err = amqp.Dial(qp.uri)
 		if err == nil {
 			break
 		}
+
 		qp.log.Errorf("RMQ: %s not connected\n", qp.uri)
 		time.Sleep(time.Second * 5)
 	}
@@ -50,6 +52,7 @@ func (qp *RMQ) InitConnection(queueName string) {
 	if qp.Channel, err = qp.Connect.Channel(); err != nil {
 		qp.log.Fatal(err)
 	}
+
 	q, err := qp.Channel.QueueDeclare(
 		queueName, // name
 		true,      // durable
@@ -61,14 +64,18 @@ func (qp *RMQ) InitConnection(queueName string) {
 	if err != nil {
 		qp.log.Fatal(err, "Failed to declare a queue")
 	}
-	if err = qp.Channel.Qos(
+
+	err = qp.Channel.Qos(
 		10,    // prefetch count
 		0,     // prefetch size
 		false, // global
-	); err != nil {
+	)
+	if err != nil {
 		qp.log.Fatal(err, "Failed to set QoS")
 	}
-	if msgs, err := qp.Channel.Consume(
+
+
+	msgs, err := qp.Channel.Consume(
 		q.Name, // queue
 		"",     // consumer
 		false,  // auto-ack
@@ -76,10 +83,9 @@ func (qp *RMQ) InitConnection(queueName string) {
 		false,  // no-local
 		false,  // no-wait
 		nil,    // args
-	); err != nil {
+	)
+	if err != nil {
 		qp.log.Fatal(err, "Failed to register a consumer")
-	} else {
-		qp.Msgs = msgs
 	}
-
+	qp.Msgs = msgs
 }

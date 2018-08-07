@@ -127,11 +127,13 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 
 	if mp.isUseAuth() {
 		// TODO admin is different
-		auth := fmt.Sprintf("%s %s %s %s %s=admin", consts.MONGO_LOGIN_KEY,
+		auth := fmt.Sprintf("%s %s %s %s %s=admin",
+			consts.MONGO_LOGIN_KEY,
 			mp.login,
 			consts.MONGO_PASS_KEY,
 			mp.password,
-			consts.MONGO_AUTH_DB_KEY)
+			consts.MONGO_AUTH_DB_KEY,
+		)
 		cmdLine = append(cmdLine, auth)
 	}
 
@@ -155,6 +157,7 @@ func (mp *MongoParams) ParamsToRestoreString() (commandString string) {
 	return
 }
 
+// Mongodb restore
 func (mp *MongoParams) Restore(task *structs.Task) (err error) {
 	mp.setDBSettings(task)
 	log.Println(mp.ParamsToRestoreString())
@@ -163,16 +166,23 @@ func (mp *MongoParams) Restore(task *structs.Task) (err error) {
 	if err != nil {
 		return err
 	}
+
 	err = cmd.Start()
 	if err != nil {
 		return err
 	}
+
 	scanner := bufio.NewScanner(stderr)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		restoreResult := scanner.Text()
 		log.Println(restoreResult)
 	}
+
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+
 	err = cmd.Wait()
 	return
 }

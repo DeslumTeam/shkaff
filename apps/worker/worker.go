@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -9,19 +8,16 @@ import (
 
 	"github.com/DeslumTeam/shkaff/apps/statsender"
 	"github.com/DeslumTeam/shkaff/drivers/mongodb"
-	"github.com/DeslumTeam/shkaff/drivers/rmq/consumer"
 	"github.com/DeslumTeam/shkaff/internal/databases"
 	"github.com/DeslumTeam/shkaff/internal/logger"
 	"github.com/DeslumTeam/shkaff/internal/structs"
 
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 )
 
-type workersStarter struct {
-	workers    map[string]map[int]*worker // map[driverName]map[taskID]*Worker
-	workRabbit *consumer.RMQ
-	log        *logging.Logger
-}
+const (
+	WORKER_SLEEP_TIMEOUT = 100 * time.Millisecond
+)
 
 type worker struct {
 	workerWG     sync.WaitGroup
@@ -32,52 +28,15 @@ type worker struct {
 	dbDriver     databases.DatabaseDriver
 }
 
-func InitWorker() (ws *workersStarter) {
-	return &workersStarter{
-		workRabbit: consumer.InitAMQPConsumer(),
-		workers:    make(map[string]map[int]*worker),
-		log:        logger.GetLogs("WorkerManager"),
-	}
-}
-
-func (ws *workersStarter) Run() {
-	var task *structs.Task
-	ws.workRabbit.InitConnection("mongodb")
-	ws.log.Info("Start WorkersManager")
-	for message := range ws.workRabbit.Msgs {
-
-		err := json.Unmarshal(message.Body, &task)
-		if err != nil {
-			ws.log.Error(err)
-			continue
-		}
-		if ws.workers[task.DBType] == nil {
-			ws.workers[task.DBType] = make(map[int]*worker)
-		}
-		if ws.workers[task.DBType][task.TaskID] == nil {
-			ws.workers[task.DBType][task.TaskID] = new(worker)
-			ws.workers[task.DBType][task.TaskID].Run()
-		}
-		err = ws.workers[task.DBType][task.TaskID].Send(task)
-		if err != nil {
-			ws.log.Error(err)
-			continue
-		}
-		message.Ack(true)
-	}
-}
-
-func (ws *workersStarter) Stop() {
-	ws.workRabbit.Channel.Close()
-	return
-}
-
 func (w *worker) Run() {
 	w.stat = statsender.Run()
 	w.dumpChan = make(chan *structs.Task, 1)
 	w.log = logger.GetLogs("Worker")
 	w.workerWG.Add(1)
-	go w.proc()
+	go func() {
+		defer w.workerWG.Done()
+		w.proc()
+	}()
 }
 
 func (w *worker) Send(task *structs.Task) (err error) {
@@ -87,6 +46,7 @@ func (w *worker) Send(task *structs.Task) (err error) {
 		w.log.Error(err)
 		return
 	}
+
 	w.dumpChan <- task
 	return
 }
@@ -102,23 +62,26 @@ func (w *worker) proc() {
 		if !ok {
 			break
 		}
-		w.stat.SendStatMessage(3, task.UserID, task.DBID, task.TaskID, nil)
+
+		w.stat.SendStatMessage(structs.StartDump, task.UserID, task.DBID, task.TaskID, nil)
 		err := w.dbDriver.Dump(task)
 		if err != nil {
-			w.stat.SendStatMessage(5, task.UserID, task.DBID, task.TaskID, err)
+			w.stat.SendStatMessage(structs.FailDump, task.UserID, task.DBID, task.TaskID, err)
 			w.log.Error(err)
 			continue
 		}
-		w.stat.SendStatMessage(4, task.UserID, task.DBID, task.TaskID, nil)
-		w.stat.SendStatMessage(6, task.UserID, task.DBID, task.TaskID, nil)
+
+		w.stat.SendStatMessage(structs.SuccessDump, task.UserID, task.DBID, task.TaskID, nil)
+		w.stat.SendStatMessage(structs.NewRestore, task.UserID, task.DBID, task.TaskID, nil)
 		err = w.dbDriver.Restore(task)
 		if err != nil {
-			w.stat.SendStatMessage(8, task.UserID, task.DBID, task.TaskID, err)
+			w.stat.SendStatMessage(structs.FailRestore, task.UserID, task.DBID, task.TaskID, err)
 			w.log.Error(err)
 			continue
 		}
-		w.stat.SendStatMessage(7, task.UserID, task.DBID, task.TaskID, err)
-		time.Sleep(100 * time.Millisecond)
+
+		w.stat.SendStatMessage(structs.SuccessRestore, task.UserID, task.DBID, task.TaskID, err)
+		time.Sleep(WORKER_SLEEP_TIMEOUT)
 	}
 }
 

@@ -26,38 +26,43 @@ func Run() (statSender *StatSender) {
 		log:      logger.GetLogs("StatSender"),
 	}
 	statSender.log.Info("Start StatSender")
-	go statSender.statSender()
+	go func() {
+		statSender.statSender()
+	}()
+
 	return
 }
 
 func (statSender *StatSender) SendStatMessage(action structs.Action, userID, dbid, taskID int, err error) {
-	var statMessage structs.StatMessage
-	statMessage.UserID = uint16(userID)
-	statMessage.DbID = uint16(dbid)
-	statMessage.TaskID = uint16(taskID)
-	statMessage.CreateDate = time.Now()
+	statMessage := structs.StatMessage{
+		UserID: uint16(userID),
+		DbID: uint16(dbid),
+		TaskID: uint16(taskID),
+		CreateDate: time.Now(),
+	}
+
 	switch action {
-	case 0:
+	case structs.NewOperator:
 		statMessage.NewOperator = 1
-	case 1:
+	case structs.SuccessOperator:
 		statMessage.SuccessOperator = 1
-	case 2:
+	case structs.FailOperator:
 		statMessage.Service = "Operator"
 		statMessage.FailOperator = 1
 		statMessage.Error = err.Error()
-	case 3:
+	case structs.NewDump:
 		statMessage.NewDump = 1
-	case 4:
+	case structs.SuccessDump:
 		statMessage.SuccessDump = 1
-	case 5:
+	case structs.FailDump:
 		statMessage.Service = "Dump"
 		statMessage.FailDump = 1
 		statMessage.Error = err.Error()
-	case 6:
+	case structs.NewRestore:
 		statMessage.NewRestore = 1
-	case 7:
+	case structs.SuccessRestore:
 		statMessage.SuccessRestore = 1
-	case 8:
+	case structs.FailRestore:
 		statMessage.Service = "Restore"
 		statMessage.FailRestore = 1
 		statMessage.Error = err.Error()
@@ -74,6 +79,7 @@ func (statSender *StatSender) statSender() {
 				statSender.log.Error(err)
 				continue
 			}
+
 			err = statSender.producer.Publish(msg)
 			if err != nil {
 				statSender.log.Error(err)

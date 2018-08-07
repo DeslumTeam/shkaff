@@ -5,72 +5,74 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DeslumTeam/shkaff/internal/logger"
 	"github.com/DeslumTeam/shkaff/internal/structs"
+	"github.com/prometheus/common/log"
 
-	logging "github.com/op/go-logging"
 	"gopkg.in/mgo.v2"
 )
 
-type mongoCliStruct struct {
-	task     structs.Task
-	messages []structs.Task
-	log      *logging.Logger
-}
+const (
+	LOGINDBNAME         = "admin"         // Admin database name
+	EMPTY_TASK          = "{}"            // Check empty task pattern
+	MONGO_DIAL_TIUMEOUT = 5 * time.Second // Dial timeout seconds
+)
 
-func (m *mongoCliStruct) emptyDB() (err error) {
-	url := fmt.Sprintf("%s:%d", m.task.Host, m.task.Port)
-
-	session, err := mgo.DialWithTimeout(url, 5*time.Second)
+func getAllDatabases(task structs.Task) (messages []structs.Task, err error) {
+	url := fmt.Sprintf("%s:%d", task.Host, task.Port)
+	session, err := mgo.DialWithTimeout(url, MONGO_DIAL_TIUMEOUT)
 	if err != nil {
-		m.log.Error(err)
+		log.Error(err)
 		return
 	}
 	defer session.Close()
 
-	if m.task.DBUser != "" && m.task.DBPassword != "" {
-		admindb := session.DB("admin")
-		err = admindb.Login(m.task.DBUser, m.task.DBPassword)
+	if task.DBUser != "" && task.DBPassword != "" {
+		admindb := session.DB(LOGINDBNAME)
+		err = admindb.Login(task.DBUser, task.DBPassword)
 		if err != nil {
-			m.log.Errorf("+++ %v \n", err)
+			log.Error(err)
 			return
 		}
 	}
+
 	dbNames, err := session.DatabaseNames()
 	if err != nil {
-		m.log.Error(err)
+		log.Error(err)
 		return
 	}
+
 	for _, dbName := range dbNames {
-		m.task.Database = dbName
-		m.messages = append(m.messages, m.task)
+		task.Database = dbName
+		messages = append(messages, task)
 	}
+
 	return
 }
 
-func (m *mongoCliStruct) fillDB() (err error) {
+func getCustomDatabases(task structs.Task) (messages []structs.Task, err error) {
+
 	databases := make(map[string][]string)
-	err = json.Unmarshal([]byte(m.task.Databases), &databases)
+	err = json.Unmarshal([]byte(task.Databases), &databases)
 	if err != nil {
-		m.log.Error("Error unmarshal databases", databases, err)
+		log.Error("Error unmarshal databases", databases, err)
 		return
 	}
+
 	for base := range databases {
-		m.task.Database = base
-		m.messages = append(m.messages, m.task)
+		task.Database = base
+		messages = append(messages, task)
 	}
+
 	return
 }
 
-func GetMessages(task structs.Task) (err error, caches []structs.Task) {
-	var mongo = new(mongoCliStruct)
-	mongo.task = task
-	mongo.log = logger.GetLogs("Mongo")
-	if task.Databases == "{}" {
-		err = mongo.emptyDB()
-	} else {
-		err = mongo.fillDB()
+// GetMessages get message for send on dump
+func GetMessages(task structs.Task) (messages []structs.Task, err error) {
+	if task.Databases == EMPTY_TASK {
+		messages, err = getAllDatabases(task)
+		return
 	}
-	return err, mongo.messages
 
+	messages, err = getCustomDatabases(task)
+	return
 }

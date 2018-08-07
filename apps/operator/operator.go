@@ -18,7 +18,13 @@ import (
 	"github.com/DeslumTeam/shkaff/internal/structs"
 
 	_ "github.com/lib/pq"
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
+)
+
+const (
+	DATATIME_FORMAT         = "2006-01-02 15:03"
+	AGGREGATOR_ITER_TIMEOUT = 10 * time.Second
+	MONGO                   = "mongodb"
 )
 
 type Operator struct {
@@ -34,28 +40,42 @@ type Operator struct {
 func InitOperator() (o *Operator) {
 	var err error
 	o = &Operator{
-		postgres:  maindb.InitPSQL(),
-		rabbit:    producer.InitAMQPProducer("mongodb"),
-		tasksChan: make(chan structs.Task),
-		log:       logger.GetLogs("Operator"),
-		stat:      statsender.Run(),
+		postgres:   maindb.InitPSQL(),
+		rabbit:     producer.InitAMQPProducer("mongodb"),
+		tasksChan:  make(chan structs.Task),
+		log:        logger.GetLogs("Operator"),
+		operatorWG: sync.WaitGroup{},
+		stat:       statsender.Run(),
 	}
+
 	o.taskCache, err = cache.InitCacheDB()
 	if err != nil {
 		o.log.Fatal(err)
 	}
+
 	return
 }
 
+// Run Start Operator service
 func (o *Operator) Run() {
-	o.operatorWG = sync.WaitGroup{}
-	o.operatorWG.Add(2)
-	go o.aggregator()
-	go o.taskSender()
-	o.log.Info("Start Operator")
+	o.operatorWG.Add(1)
+	go func() {
+		defer o.operatorWG.Done()
+		o.log.Info("Start Aggregator")
+		o.aggregator()
+	}()
+
+	o.operatorWG.Add(1)
+	go func() {
+		defer o.operatorWG.Done()
+		o.log.Info("Start TaskSender")
+		o.taskSender()
+	}()
+
 	o.operatorWG.Wait()
 }
 
+// Stop Operator service
 func (o *Operator) Stop() {
 	for i := 0; i < 2; i++ {
 		o.operatorWG.Done()
@@ -64,44 +84,40 @@ func (o *Operator) Stop() {
 }
 
 func (o *Operator) taskSender() {
-	var messages []structs.Task
-	for task := range o.tasksChan {
+	for {
+		task, ok := <-o.tasksChan
+		if !ok {
+			break
+		}
 
-		switch dbType := task.DBType; dbType {
-		case "mongodb":
-			var err error
-			err, messages = mongodb.GetMessages(task)
-			if err != nil {
-				continue
-			}
-		default:
-			err := fmt.Errorf("Driver for Database %s not found", task.DBType)
-			o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
-			o.log.Info(err)
+		messages, err := o.getMessagesByDatabaseType(task)
+		if err != nil {
 			continue
 		}
+
 		for _, msg := range messages {
-			o.stat.SendStatMessage(0, task.UserID, task.DBID, task.TaskID, nil)
+			o.stat.SendStatMessage(structs.NewOperator, task.UserID, task.DBID, task.TaskID, nil)
 			body, err := json.Marshal(msg)
 			if err != nil {
-				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
+				o.stat.SendStatMessage(structs.FailOperator, task.UserID, task.DBID, task.TaskID, err)
 				o.log.Error(err)
 				continue
 			}
 
 			err = o.rabbit.Publish(body)
 			if err != nil {
-				o.stat.SendStatMessage(2, task.UserID, task.DBID, task.TaskID, err)
+				o.stat.SendStatMessage(structs.FailOperator, task.UserID, task.DBID, task.TaskID, err)
 				o.log.Error(err)
 				continue
 			}
-			o.stat.SendStatMessage(1, task.UserID, task.DBID, task.TaskID, nil)
+
+			o.stat.SendStatMessage(structs.StartOperator, task.UserID, task.DBID, task.TaskID, nil)
 		}
 	}
 }
 
 func (o *Operator) aggregator() {
-	psqlUpdateTime := time.NewTimer(10 * time.Second)
+	psqlUpdateTime := time.NewTimer(AGGREGATOR_ITER_TIMEOUT)
 	for {
 		select {
 		case <-psqlUpdateTime.C:
@@ -116,7 +132,13 @@ func (o *Operator) aggregator() {
 			if err != nil {
 				o.log.Error(err)
 			}
-			go o.processTask(rows)
+
+			o.operatorWG.Add(1)
+			go func() {
+				defer o.operatorWG.Done()
+				o.processTask(rows)
+			}()
+
 			timeout := time.Duration(60 - (time.Now().Unix() - tsNow.Unix()))
 			psqlUpdateTime = time.NewTimer(timeout * time.Second)
 		}
@@ -124,15 +146,35 @@ func (o *Operator) aggregator() {
 }
 
 func (o *Operator) processTask(rows *sqlx.Rows) {
-	var task = structs.Task{}
+	var task structs.Task
 	for rows.Next() {
 		err := rows.StructScan(&task)
 		if err != nil {
 			o.log.Error(err)
 			return
 		}
-		dateFolder := time.Now().Format("2006-01-02 15:03")
+
+		dateFolder := time.Now().Format(DATATIME_FORMAT)
 		task.DumpFolder = fmt.Sprintf("'%s/%s'", task.DumpFolder, dateFolder)
 		o.tasksChan <- task
 	}
+
+	if rows.Err() != nil {
+		o.log.Error(rows.Err())
+	}
+}
+
+func (o *Operator) getMessagesByDatabaseType(task structs.Task) (messages []structs.Task, err error) {
+	switch task.DBType {
+	case MONGO:
+		messages, err = mongodb.GetMessages(task)
+		if err != nil {
+			return
+		}
+	default:
+		err := fmt.Errorf("Driver for Database %s not found", task.DBType)
+		o.stat.SendStatMessage(structs.FailOperator, task.UserID, task.DBID, task.TaskID, err)
+		o.log.Info(err)
+	}
+	return
 }

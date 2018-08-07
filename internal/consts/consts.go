@@ -31,17 +31,30 @@ const (
 	RMQ_URI_TEMPLATE  = "amqp://%s:%s@%s:%d/%s"
 	PSQL_URI_TEMPLATE = "postgres://%s:%s@%s:%d/%s?sslmode=disable"
 
-	REQUEST_GET_STARTTIME = `SELECT task_id, db.db_id, user_id, "verb", thread_count,
-    ipv6, gzip, host, port, databases, db_user, db_password, dumpfolder, tp.type as db_type
+	REQUEST_GET_STARTTIME = `
+	SELECT task_id, 
+			db.db_id, 
+			user_id, 
+			"verb", 
+			thread_count,
+    		ipv6, 
+			gzip, 
+			host, 
+			port, 
+			databases, 
+			db_user, 
+			db_password, 
+			dumpfolder, 
+			tp.type as db_type
 	FROM shkaff.tasks t 
 	INNER JOIN shkaff.db_settings db 
 	ON t.db_id = db.db_id 
 	INNER JOIN shkaff.types tp ON tp.type_id = db.type_id
 	WHERE (months @> ARRAY[%d]) 
-	AND (day_week @> ARRAY[%d])
-	AND (hours = %d)
-	AND (minutes = %d) 
-	AND t.is_active = true AND t.is_delete = false;`
+		AND (day_week @> ARRAY[%d])
+		AND (hours = %d)
+		AND (minutes = %d) 
+		AND t.is_active = true AND t.is_delete = false;`
 
 	REQUESR_UPDATE_ACTIVE = "UPDATE shkaff.tasks SET is_active = $1 WHERE task_id = $2 and AND is_delete = false;"
 
