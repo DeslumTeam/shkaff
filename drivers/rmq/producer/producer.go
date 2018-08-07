@@ -12,6 +12,11 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const (
+	EMPTY_EXCHANGE   = ""
+	RMQ_CONTENT_TYPE = "application/json"
+)
+
 type RMQ struct {
 	uri        string
 	queueName  string
@@ -21,8 +26,11 @@ type RMQ struct {
 	log        *logging.Logger
 }
 
-func InitAMQPProducer(queueName string) (qp *RMQ) {
-	var err error
+func InitAMQPProducer(queueName string) (qp *RMQ, err error) {
+	if queueName == "" {
+		return nil, fmt.Errorf("QueueName is empty")
+	}
+
 	cfg := options.InitControlConfig()
 	qp = &RMQ{
 		uri: fmt.Sprintf(consts.RMQ_URI_TEMPLATE, cfg.RMQ_USER,
@@ -31,7 +39,7 @@ func InitAMQPProducer(queueName string) (qp *RMQ) {
 			cfg.RMQ_PORT,
 			cfg.RMQ_VHOST),
 		queueName: queueName,
-		log: logger.GetLogs("RMQ Producer"),
+		log:       logger.GetLogs("RMQ Producer"),
 	}
 
 	for {
@@ -69,10 +77,10 @@ func InitAMQPProducer(queueName string) (qp *RMQ) {
 
 func (qp *RMQ) Publish(body []byte) (err error) {
 	qp.Publishing = &amqp.Publishing{
-		ContentType: "application/json",
+		ContentType: RMQ_CONTENT_TYPE,
 		Body:        body,
 	}
 
-	err = qp.Channel.Publish("", qp.queueName, false, false, *qp.Publishing)
+	err = qp.Channel.Publish(EMPTY_EXCHANGE, qp.queueName, false, false, *qp.Publishing)
 	return
 }

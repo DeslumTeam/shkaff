@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/DeslumTeam/shkaff/internal/structs"
-	"github.com/prometheus/common/log"
-
 	"gopkg.in/mgo.v2"
 )
 
@@ -21,7 +19,6 @@ func getAllDatabases(task structs.Task) (messages []structs.Task, err error) {
 	url := fmt.Sprintf("%s:%d", task.Host, task.Port)
 	session, err := mgo.DialWithTimeout(url, MONGO_DIAL_TIUMEOUT)
 	if err != nil {
-		log.Error(err)
 		return
 	}
 	defer session.Close()
@@ -30,14 +27,12 @@ func getAllDatabases(task structs.Task) (messages []structs.Task, err error) {
 		admindb := session.DB(LOGINDBNAME)
 		err = admindb.Login(task.DBUser, task.DBPassword)
 		if err != nil {
-			log.Error(err)
 			return
 		}
 	}
 
 	dbNames, err := session.DatabaseNames()
 	if err != nil {
-		log.Error(err)
 		return
 	}
 
@@ -50,11 +45,9 @@ func getAllDatabases(task structs.Task) (messages []structs.Task, err error) {
 }
 
 func getCustomDatabases(task structs.Task) (messages []structs.Task, err error) {
-
 	databases := make(map[string][]string)
 	err = json.Unmarshal([]byte(task.Databases), &databases)
 	if err != nil {
-		log.Error("Error unmarshal databases", databases, err)
 		return
 	}
 

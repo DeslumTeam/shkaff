@@ -33,10 +33,9 @@ func InitAMQPConsumer() (qp *RMQ) {
 	}
 }
 
-func (qp *RMQ) InitConnection(queueName string) {
-	var err error
+func (qp *RMQ) InitConnection(queueName string) (err error) {
 	if queueName == "" {
-		qp.log.Fatal("Consumer queue name empty")
+		return fmt.Errorf("Consumer queue name empty")
 	}
 
 	for {
@@ -49,8 +48,9 @@ func (qp *RMQ) InitConnection(queueName string) {
 		time.Sleep(time.Second * 5)
 	}
 
-	if qp.Channel, err = qp.Connect.Channel(); err != nil {
-		qp.log.Fatal(err)
+	qp.Channel, err = qp.Connect.Channel()
+	if err != nil {
+		return
 	}
 
 	q, err := qp.Channel.QueueDeclare(
@@ -62,7 +62,7 @@ func (qp *RMQ) InitConnection(queueName string) {
 		nil,       // arguments
 	)
 	if err != nil {
-		qp.log.Fatal(err, "Failed to declare a queue")
+		return err
 	}
 
 	err = qp.Channel.Qos(
@@ -71,9 +71,8 @@ func (qp *RMQ) InitConnection(queueName string) {
 		false, // global
 	)
 	if err != nil {
-		qp.log.Fatal(err, "Failed to set QoS")
+		return fmt.Errorf("Failed to set QoS %v", err)
 	}
-
 
 	msgs, err := qp.Channel.Consume(
 		q.Name, // queue
@@ -85,7 +84,9 @@ func (qp *RMQ) InitConnection(queueName string) {
 		nil,    // args
 	)
 	if err != nil {
-		qp.log.Fatal(err, "Failed to register a consumer")
+		return err
 	}
+
 	qp.Msgs = msgs
+	return
 }
