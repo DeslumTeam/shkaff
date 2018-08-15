@@ -11,6 +11,8 @@ services:
       - POSTGRES_DB=shkaff
     volumes:
       - ./deploy/maindb/shkaff.sql:/docker-entrypoint-initdb.d/shkaff.sql
+    # networks: 
+    #   - shkaff_network
 
   mongodb:
     image: aashreys/mongo-auth:latest
@@ -22,6 +24,8 @@ services:
       - "27017:27017"
     volumes:
       - ./deploy/mongodb_test:/opt
+    # networks: 
+    #   - shkaff_network
 
   mongodb-restore:
     image: aashreys/mongo-auth:latest
@@ -33,6 +37,8 @@ services:
       - "27018:27017"
     volumes:
       - ./deploy/mongodb_test:/opt
+    # networks: 
+    #   - shkaff_network
 
   rabbitmq:
     image: "rabbitmq:latest"
@@ -45,7 +51,8 @@ services:
       - "5672:5672"
     volumes:    
       - "./deploy/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
-
+    # networks: 
+    #   - shkaff_network
 
   clickhouse-server:
     image: "yandex/clickhouse-server:latest"
@@ -53,13 +60,20 @@ services:
       - "8123:8123"
       - "9000:9000"
       - "9009:9009"
+    # networks: 
+    #   - shkaff_network
 
   clickhouse-client:
     image: "yandex/clickhouse-client:latest"
     entrypoint: /bin/bash
     environment:
-      - HOUSE_HOST=ClickHouse-Server
+      - HOUSE_HOST=clickhouse-server
     volumes:
       - ./deploy/clickhouse:/opt
     command: 
       - "/opt/create_table.sh"
+    # networks: 
+    #   - shkaff_network
+
+# networks: 
+#   shkaff_network:

@@ -56,30 +56,36 @@ type Errors struct {
 type StatDB struct {
 	mutex           sync.Mutex
 	uri             string
-	statMessageList []structs.StatMessage
+	statMessageList []*structs.StatMessage
 	DB              *sqlx.DB
 }
 
 func InitStat() (s *StatDB) {
-	cfg := options.InitControlConfig()
+	var db *sqlx.DB
 	var err error
-	s = new(StatDB)
-	s.mutex = sync.Mutex{}
-	s.uri = fmt.Sprintf(URI_TEMPLATE, cfg.STATBASE_HOST, cfg.STATBASE_PORT)
+	cfg := options.InitControlConfig()
+	uri := fmt.Sprintf(URI_TEMPLATE, cfg.STATBASE_HOST, cfg.STATBASE_PORT)
 	for {
-		s.DB, err = sqlx.Open("clickhouse", s.uri)
+		db, err = sqlx.Open("clickhouse", uri)
 		if err == nil {
 			break
 		}
+
 		log.Printf("ClickHouse: %s not connected\n", s.uri)
 		time.Sleep(time.Second * 5)
+	}
+
+	s = &StatDB{
+		mutex: sync.Mutex{},
+		uri:   uri,
+		DB:    db,
 	}
 
 	go s.checkout()
 	return
 }
 
-func (s *StatDB) Insert(statMessage structs.StatMessage) (err error) {
+func (s *StatDB) Insert(statMessage *structs.StatMessage) (err error) {
 	s.mutex.Lock()
 	s.statMessageList = append(s.statMessageList, statMessage)
 	s.mutex.Unlock()
@@ -92,36 +98,58 @@ func (s *StatDB) checkout() {
 		select {
 		case <-timer.C:
 			if len(s.statMessageList) > 0 {
-				s.inserBulk()
+				err := s.inserBulk()
+				if err != nil {
+					log.Print(err)
+				}
 			}
 		}
 	}
 }
 
-func (s *StatDB) inserBulk() {
+func (s *StatDB) inserBulk() (err error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
 	tx, err := s.DB.Begin()
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("BD Begin error %v", err)
 	}
+
 	stmt, err := tx.Prepare(INSERT_REQUEST)
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("tx.Prepare() error: %v\n", err)
 	}
+
 	for _, sm := range s.statMessageList {
-		_, err = stmt.Exec(sm.UserID, sm.DbID, sm.TaskID, sm.Service, sm.NewOperator, sm.SuccessOperator,
-			sm.FailOperator, sm.NewDump, sm.SuccessDump, sm.FailDump, sm.NewRestore,
-			sm.SuccessRestore, sm.FailRestore, sm.Error, sm.CreateDate)
+		_, err = stmt.Exec(
+			sm.UserID,
+			sm.DbID,
+			sm.TaskID,
+			sm.Service,
+			sm.NewOperator,
+			sm.SuccessOperator,
+			sm.FailOperator,
+			sm.NewDump,
+			sm.SuccessDump,
+			sm.FailDump,
+			sm.NewRestore,
+			sm.SuccessRestore,
+			sm.FailRestore,
+			sm.Error,
+			sm.CreateDate,
+		)
 		if err != nil {
-			log.Println(err)
+			return fmt.Errorf("Exec error %v", err)
 		}
 	}
+
 	err = tx.Commit()
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("tx.Commit error: %v", err)
 	}
 	s.dropList()
+	return
 }
 
 //TODO Refactoring Very Ugly
@@ -160,7 +188,7 @@ func (s *StatDB) StandartStatSelect() (result map[string]map[string]interface{},
 }
 
 func (s *StatDB) dropList() {
-	s.statMessageList = []structs.StatMessage{}
+	s.statMessageList = nil //[]*structs.StatMessage{}
 }
 
 func (s *StatDB) SelectDailyErrors() (result [][]string, err error) {

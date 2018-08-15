@@ -38,12 +38,16 @@ type Operator struct {
 }
 
 func InitOperator() (o *Operator) {
-	var err error
+	log := logger.GetLogs("Operator")
+	producer, err := producer.InitAMQPProducer("mongodb")
+	if err != nil {
+		log.Fatalf("Operator error %v", err)
+	}
 	o = &Operator{
 		postgres:   maindb.InitPSQL(),
-		rabbit:     producer.InitAMQPProducer("mongodb"),
+		rabbit:     producer,
 		tasksChan:  make(chan structs.Task),
-		log:        logger.GetLogs("Operator"),
+		log:        log,
 		operatorWG: sync.WaitGroup{},
 		stat:       statsender.Run(),
 	}
@@ -92,10 +96,12 @@ func (o *Operator) taskSender() {
 
 		messages, err := o.getMessagesByDatabaseType(task)
 		if err != nil {
+			o.log.Errorf("getMessagesByDatabaseType %v \n Error %v", task, err)
 			continue
 		}
 
 		for _, msg := range messages {
+			o.log.Infof("-->> %v", msg)
 			o.stat.SendStatMessage(structs.NewOperator, task.UserID, task.DBID, task.TaskID, nil)
 			body, err := json.Marshal(msg)
 			if err != nil {
@@ -103,7 +109,7 @@ func (o *Operator) taskSender() {
 				o.log.Error(err)
 				continue
 			}
-
+			o.log.Infof("->> %v", body)
 			err = o.rabbit.Publish(body)
 			if err != nil {
 				o.stat.SendStatMessage(structs.FailOperator, task.UserID, task.DBID, task.TaskID, err)
@@ -129,6 +135,7 @@ func (o *Operator) aggregator() {
 				int(tsNow.Hour()),
 				int(tsNow.Minute()))
 			rows, err := o.postgres.DB.Queryx(request)
+			o.log.Infof("Rows comming")
 			if err != nil {
 				o.log.Error(err)
 			}
@@ -153,7 +160,6 @@ func (o *Operator) processTask(rows *sqlx.Rows) {
 			o.log.Error(err)
 			return
 		}
-
 		dateFolder := time.Now().Format(DATATIME_FORMAT)
 		task.DumpFolder = fmt.Sprintf("'%s/%s'", task.DumpFolder, dateFolder)
 		o.tasksChan <- task
@@ -174,7 +180,6 @@ func (o *Operator) getMessagesByDatabaseType(task structs.Task) (messages []stru
 	default:
 		err := fmt.Errorf("Driver for Database %s not found", task.DBType)
 		o.stat.SendStatMessage(structs.FailOperator, task.UserID, task.DBID, task.TaskID, err)
-		o.log.Info(err)
 	}
 	return
 }

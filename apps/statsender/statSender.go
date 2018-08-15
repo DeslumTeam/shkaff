@@ -20,10 +20,16 @@ type StatSender struct {
 }
 
 func Run() (statSender *StatSender) {
+	log := logger.GetLogs("StatSender")
+	producer, err := producer.InitAMQPProducer("shkaff_stat")
+	if err != nil {
+		log.Fatalf("StatSender error %v", err)
+	}
+
 	statSender = &StatSender{
 		sChan:    make(chan structs.StatMessage),
-		producer: producer.InitAMQPProducer("shkaff_stat"),
-		log:      logger.GetLogs("StatSender"),
+		producer: producer,
+		log:      log,
 	}
 	statSender.log.Info("Start StatSender")
 	go func() {
@@ -35,9 +41,9 @@ func Run() (statSender *StatSender) {
 
 func (statSender *StatSender) SendStatMessage(action structs.Action, userID, dbid, taskID int, err error) {
 	statMessage := structs.StatMessage{
-		UserID: uint16(userID),
-		DbID: uint16(dbid),
-		TaskID: uint16(taskID),
+		UserID:     uint16(userID),
+		DbID:       uint16(dbid),
+		TaskID:     uint16(taskID),
 		CreateDate: time.Now(),
 	}
 
@@ -107,12 +113,17 @@ func InitStatSender() (sw *statWorker) {
 
 func (statSender *statWorker) Run() {
 	statSender.log.Info("Start StatWorker")
-	var statMessage structs.StatMessage
+	var statMessage *structs.StatMessage
 	statSender.consumer.InitConnection("shkaff_stat")
 	for message := range statSender.consumer.Msgs {
 		err := json.Unmarshal(message.Body, &statMessage)
 		if err != nil {
 			statSender.log.Error(err)
+			continue
+		}
+
+		if statMessage == nil {
+			statSender.log.Errorf("StatMessage is %v. Body is %v", statMessage, message.Body)
 			continue
 		}
 
